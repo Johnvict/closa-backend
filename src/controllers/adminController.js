@@ -1,0 +1,137 @@
+// const User = require('./../models/User');
+// const Booking = require('./../models/Booking');
+// const Auth = require('./../middleware/authorization');
+// const Op = require('sequelize').Op;
+
+// // For a super admin who wants to see all registered users
+// const allUsers = (req, res) => {	
+// 	User.findAll({where: {role: 'receptionist'}}) .then(users => {
+// 		return res.status(200).json({ status: 1, data: users });
+// 	});
+// }
+
+// const profitLogs = (req, res) => {	
+// 	Booking.findAll().then(bookings => {
+// 		const profitLog = {
+// 			totalBookings: bookings.length,
+// 			// totalIncome: bookings.reduce(bookings => bo)
+// 		}
+// 		return res.status(200).json({ status: 1, data: users });
+// 	});
+// }
+
+// // To get a single user
+// const getOneUser = async (pk) => {
+// 	return await User.findByPk(pk).then( data => data);
+// }
+
+// // Get the data of an authenticated user
+// const getAuthUser = async (pk) => {
+// 	return await User.findByPk(pk).then( data => data);
+// }
+
+// // Check if a phone number is already registered with a user
+// // Phone number is unique on the system
+// /**
+//  * 
+//  * @param {phone} res {found}: true | false
+//  */
+// const checkPhone  = (req, res) => {
+// 	const { phone } = req.params;
+// 	User.findOne({where: {phone}}).then( data => {
+// 		return res.status(200).json({ status: 1, found: data ? true : false });
+// 	});
+// }
+
+// // Check if an email is already registered with a user
+// // Email  is unique on the system
+// /**
+//  * 
+//  * @param {email} res {found}: true | false
+//  */
+// const checkEmail  = (req, res) => {
+// 	const { email } = req.params;
+// 	User.findOne({where: {email}}).then( data => {
+// 		return res.status(200).json({ status: 1, found: data ? true : false });
+// 	});
+// }
+
+
+// // Logic to create a new user
+// const createUser = (req, res) => {
+// 	newUserData.password = Auth.hashPassword(newUserData.password);
+// 	const dataToStore = { phone, email, password, role }  = newUserData;
+// 	User.findOrCreate({
+// 		where: {[Op.or]: [{phone}, {email}]},
+// 		defaults: { ...dataToStore } 
+// 	}).then( async (queryRes) => {
+// 		if (queryRes[1]) return res.status(201).json({ status: 1, data: await getOneUser(queryRes[0].id).then(Data => Data) });
+// 		return res.status(400).json({ status: 0, message: "data already exists" });
+// 	})
+// 	.catch(e => console.log(e));
+// };
+
+// const updateUser = async (req, res) => {
+// 	const latestUserData = req.body;
+// 	const user = await getOneUser(req.body.id);
+// 	if (!user) return res.status(404).json({status: -1, message: "user not found"});
+// 	const dataToStore = { email, phone, role }  = latestUserData;
+// 	User.update({ ...dataToStore }, {returning: true, where: { id: latestUserData.id }})
+// 	.then( async (updatedUser) => {
+// 		return res.status(200).json({
+// 			status: 1,
+// 			data: await getAuthUser(latestUserData.id).then(Data => Data)
+// 		});
+// 	})
+// 	.catch(e => console.log(e))
+// };
+
+// const deleteUser = (req, res) => {	
+// 	const {id }= req.params;
+// 	User.destroy ({where: {id}}).then(user => {
+// 		return res.status(200).json({
+// 			status: user < 1 ? -1 : 1,
+// 			message: user < 1 ? 'data not found' : 'data deleted successfully'
+// 		});
+// 	}).catch(err => console.log('Error: ', err))
+// }
+
+// const changePassword = async (req, res) => {
+// 	const userPasswordData = req.body;
+// 	await getOneUser(userPasswordData.id).then(Data => {
+// 		userPasswordData['existing_password'] = Data.password;
+// 	});
+// 	const isPasswordValid = Validator.validatePassword(userPasswordData);
+// 	if (!isPasswordValid) return res.status(401).json({ status: -1, message: 'old password is invalid' });
+// 	userPasswordData.new_password = Auth.hashPassword(userPasswordData.new_password);
+// 	User.update({ password: userPasswordData.new_password }, {returning: true, where: { id: userPasswordData.id }})
+// 	.then( async (updatedUser) => {
+// 		const user = await getOneUser(userPasswordData.id);
+// 		return res.status(201).json({
+// 			status: 1,
+// 			data: await getAuthUser(userPasswordData.id).then(Data => Data)
+// 		});
+// 	});
+// }
+
+// const login = (req, res) => {
+// 	const { username, password } = req.body;
+// 	User.findOne({where: {[Op.or]: [{email: username}, { username }]}}).then( async (user) => {
+// 		if (!user) return res.status(401).json({status: -1, message: 'invalid credentials'});
+// 		if (!Auth.comparePassword(password, user.password)) return res.status(401).json({status: '-1', message: 'invalid credentials'});
+
+// 		User.update({ lastLoginTime: Date.now() }, {returning: true, where: { id: user.id }}).then( user => {
+// 			return res.json({
+// 				status: 1,
+// 				token:  Auth.generateToken(user.id, user.email),
+// 				data: user
+// 				// data: await getAuthUser(user.id, user.client_id).then(Data => Data)
+// 			});
+// 		})
+// 	});
+// }
+
+
+
+
+// module.exports = { allUsers, oneUser, getOneUser, createUser, updateUser, deleteUser, checkPhone, checkEmail, changePassword, login  }

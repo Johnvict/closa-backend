@@ -1,0 +1,55 @@
+{
+  "name": "next",
+  "version": "1.0.0",
+  "description": "Who is ready for work at the NEXT Office or Shop around here",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "dev": "nodemon --exec ts-node src/index.ts"
+  },
+  "keywords": [
+    "next",
+    "location",
+    "direction",
+    "live",
+    "distance",
+    "work",
+    "ready",
+    "now",
+    "here",
+    "around",
+    "shop",
+    "office",
+    "job",
+    "client",
+    "customer"
+  ],
+  "author": "Devpitch Tech.",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/joi": "^17.1.0",
+    "bcrypt": "^4.0.0",
+    "body-parser": "^1.19.0",
+    "config": "^3.3.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "joi-objectid": "^3.0.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.2",
+    "mysql": "^2.18.1",
+    "node-fetch": "^2.6.0",
+    "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0",
+    "sequelize": "^5.21.5",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.2",
+    "@types/mongoose": "^5.7.3",
+    "@types/node": "^13.7.6",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.2"
+  }
+}
