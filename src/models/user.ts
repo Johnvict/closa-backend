@@ -1,14 +1,24 @@
 import { GenericObject, UserStruct, UpdateUserAccount } from "../misc/structs"
-import { auth } from './../app/exported.classes'
-const User = require('./definition/User')
+import { auth, DbModel } from './../app/exported.classes'
+
 const Op = require('sequelize').Op;
 
 export class UserModel {
+	userRelations = [
+		{ model: DbModel.User, as: 'profile' },
+		{ model: DbModel.Worker, as: 'business' },
+		{
+			model: DbModel.Location, as: 'location', include: [
+				{ model: DbModel.State, as: 'state' },
+				{ model: DbModel.Town, as: 'town' }
+			]
+		},
+	];
 	constructor() { }
 
 	async create(newUser: UserStruct): Promise<{ error?: GenericObject, data?: UserStruct }> {
 		newUser.password = auth.hashPassword(newUser.password);
-		return User.findOrCreate({
+		return DbModel.Agent.findOrCreate({
 			where: { [Op.or]: [{ phone: newUser.phone }] },
 			defaults: newUser
 		}).then(async (queryRes) => {
@@ -17,25 +27,30 @@ export class UserModel {
 		}).catch(e => console.log(e));
 	}
 
-	async getOne(id: number) {
-		return await User.findByPk(id).then(data => data);
-		// return await User.findByPk(id, {include: { model: TransactionLog, as: "transactionLogs" }}).then( data => data);
+	async getOne(id: number): Promise<{ error?: any, data?: UserStruct }> {
+		try {
+			return { data: await DbModel.Agent.findByPk(id, { include: this.userRelations }) };
+			// return { data: await DbModel.State.findByPk(id, { include: {model: DbModel.Location, as: 'state'} }) };
+		} catch (err) {
+			console.log(err.message)
+			return { error: 'server error' };
+		}
 	}
 
 	async getAll(): Promise<{ error?: string, data?: UserStruct[] }> {
-		const users = await User.findAll()
+		const users = await DbModel.Agent.findAll()
 		return users ? { data: users } : { error: 'no user found' }
 	}
 
 	async findOneWithFilter(filterArgs: GenericObject) {
-		return await User.findOne({where: filterArgs})
+		return await DbModel.Agent.findOne({ where: filterArgs })
 	}
 
 	whatToUpdate(user): GenericObject {
 		const newData = {}
 		for (let key in user) {
 			if (key == '_id') continue
-			if(key == 'password') user[key] = auth.hashPassword(user[key]);
+			if (key == 'password') user[key] = auth.hashPassword(user[key]);
 			newData[key] = user[key]
 		}
 		return newData
@@ -43,10 +58,10 @@ export class UserModel {
 
 	async update(user: UpdateUserAccount): Promise<{ error?: string, data?: UserStruct }> {
 		const dataToStore = this.whatToUpdate(user);
-		return User.update(dataToStore, { returning: true, where: { id: dataToStore.id } })
+		return DbModel.Agent.update(dataToStore, { returning: true, where: { id: dataToStore.id } })
 			.then(async (updatedUser) => {
 				const userData = await this.getOne(user.id);
-				return updatedUser ? { data: userData } : { error: 'No user found with this id' }
+				return updatedUser ? { data: userData } : { error: 'No account found with this id' }
 			})
 			.catch(e => console.log(e))
 	}

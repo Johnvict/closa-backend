@@ -1,6 +1,7 @@
 const config = require('./app/config');
 const { io, app, server, sequelize } = require('./app/connection')
 const Routes = require('./routes/routes');
+const Relationship = require('./models/definition/Relationships');
 
 	
 app.get('/', (req, res) => res.send('Hello! Make request to /api'))

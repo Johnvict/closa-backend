@@ -43,7 +43,7 @@ export interface ProtectedData {
 }
 
 export interface GenericObject {
-	[key: string]: string  | boolean | number | object | Date;
+	[key: string]: any;
 }
 
 export interface ModelGenericReturnValue {

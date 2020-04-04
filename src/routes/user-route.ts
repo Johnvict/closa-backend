@@ -9,10 +9,10 @@ const validate = validator.validate;
 
 
 /* Create new user */
-Router.post('/', validate(validator.newUserStruct), (req, res) => userCtrl.createUser(req, res))
+Router.post('/', validate(validator.newAgent), (req, res) => userCtrl.createUser(req, res))
 
 /* Update user */
-Router.put('/', userMiddleware, (req, res) => userCtrl.updateUser(req, res))
+Router.put('/', userMiddleware, validate(validator.updateAgent), (req, res) => userCtrl.updateUser(req, res))
 
 /* Delete user */
 Router.delete('/', userMiddleware, (req, res) => userCtrl.deleteUser(req, res))

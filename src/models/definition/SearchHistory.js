@@ -1,8 +1,8 @@
 const Sequelize = require("sequelize");
 const Model = Sequelize.Model;
 
-class User extends Model {}
-User.init(
+class SearchHistory extends Model {}
+SearchHistory.init(
   {
     id: {
       type: Sequelize.INTEGER(11),
@@ -17,21 +17,17 @@ User.init(
         key: "id"
       }
     },
-    name: {
+    key: {
       type: Sequelize.STRING(30),
       allowNull: false
-    },
-    occupation: {
-      type: Sequelize.STRING(50),
-      allowNull: true
-    },
-    createdAt: Sequelize.DATE,
+	},
+	createdAt: Sequelize.DATE,
     updatedAt: Sequelize.DATE
   },
   {
     sequelize,
-    modelName: "users"
+    modelName: "search_histories"
   }
 );
 
-module.exports = User;
+module.exports = SearchHistory;

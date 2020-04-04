@@ -53,10 +53,17 @@ export class UserController {
 		const user = await userModel.findOneWithFilter({ phone: phone })
 		if (!user) return res.status(401).json({ status: -1, message: 'invalid credentials' });
 		if (!auth.comparePassword({ candidatePassword: password, hashedPassword: user.password })) return res.status(401).json({ status: '-1', message: 'invalid credentials' });
-		res.json({
-			status: 1,
-			token: auth.generateToken(user.id, user.phone, user.type),
-			data: user
+		userModel.getOne(user.id).then( userData => {
+			return userData.data ? 
+			res.status(200).json({
+				status: 1,
+				token: auth.generateToken(user.id, user.phone, user.type),
+				data: userData.data
+			}) :
+			res.status(500).json({
+				status: -1,
+				message: userData.error
+			});
 		});
 		return this.upDateLoginTime(user.id);
 	}

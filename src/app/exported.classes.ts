@@ -4,6 +4,24 @@ import { UserModel } from "./../models/user";
 import { Authorization } from './../middleware/authorization'
 import { Validator } from './../middleware/validator'
 
+
+/**
+ * ! Db model classes..
+ * ? We don't want to import them in each place we're gonna be needing them
+ */
+export const DbModel = {
+	Agent: require('./../models/definition/Agent'),
+	File: require('./../models/definition/File'),
+	Job: require('./../models/definition/Job'),
+	JobSample: require('./../models/definition/JobSample'),
+	State: require('./../models/definition/State'),
+	Town: require('./../models/definition/Town'),
+	Location: require('./../models/definition/Location'),
+	SearchHistory: require('./../models/definition/SearchHistory'),
+	User: require('./../models/definition/User'),
+	Worker: require('./../models/definition/Worker')
+};
+
 export const sequelize = require('./connection')
 
 /** 

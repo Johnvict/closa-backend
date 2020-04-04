@@ -2,7 +2,7 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable("users", {
+    return queryInterface.createTable("agents", {
       id: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
@@ -10,23 +10,22 @@ module.exports = {
         primaryKey: true
       },
       phone: {
-        type: Sequelize.STRING(12),
+        type: Sequelize.STRING(20),
         allowNull: false,
         unique: true
       },
       password: {
         type: Sequelize.STRING(),
-        allowNull: false,
-	  },
-	  type: {
-		type: Sequelize.STRING(20),
-		defaultValue: 'user'
-	  },
+        allowNull: false
+      },
+      type: {
+        type: Sequelize.ENUM(["user", "worker"]),
+        defaultValue: "user"
+      },
       active: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
       },
-
       lastLoginAt: Sequelize.DATE,
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE
@@ -34,6 +33,6 @@ module.exports = {
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("users");
+      return queryInterface.dropTable('agents');
   }
 };
