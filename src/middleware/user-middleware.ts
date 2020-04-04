@@ -1,9 +1,5 @@
 let JWT = require('jsonwebtoken');
-// const jwtSecret = process.env.JWT_SECRET
-// const config = require('config');
-
-const jwtSecret = "live-chat-is-kjdfhkdjdghvbvjled-edfljdbcdjcd-erqewff355-fwe" //process.env.JWT_SECRET;
-// const jwtSecret = config.get('jwtPrivateKey') //process.env.JWT_SECRET;
+const jwtSecret = process.env.JWT_SECRET;
 
 export const userMiddleware = (req: any, res: any, next: any) => {
 	const token = req.header('authorization')

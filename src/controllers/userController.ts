@@ -14,67 +14,66 @@ export class UserController {
 			})
 		})
 	}
-	async getOne(id) {
-		return await userModel.findOneWithFilter({ _id: { $eq: id } })
-	}
-	async checkPhone(phone) {
-		return await userModel.findOneWithFilter({ phone: { $eq: phone } })
-	}
-	async checkEmail(email) {
-		return await userModel.findOneWithFilter({ email: { $eq: email } })
-	}
+	// async getOne(id) {
+	// 	return await userModel.findOneWithFilter({ id: { $eq: id } })
+	// }
+	// async checkPhone(phone) {
+	// 	return await userModel.findOneWithFilter({ phone: { $eq: phone } })
+	// }
+	// async checkEmail(email) {
+	// 	return await userModel.findOneWithFilter({ email: { $eq: email } })
+	// }
 
 	async createUser(req, res) {
-		const isEmailTaken = await this.checkEmail(req.body.email)
-		if (isEmailTaken) return res.status(400).json([{ email: 'this email is already taken' }])
-		const isPhoneTaken = await this.checkPhone(req.body.phone)
-		if (isPhoneTaken) return res.status(400).json([{ phone: 'this phone number is already taken' }])
 		userModel.create(req.body).then(response => {
-			return response.error ? res.status(400).json(response.error) : res.status(201).json({ status: 1, data: response.data });
+			return response.error ? 
+				res.status(400).json({ status: -1, message: response.error }) : 
+				res.status(201).json({ status: 1, data: response.data });
 		})
 	}
 
 	async updateUser(req, res) {
-		userModel.update({ _id: req.user._id, ...req.body }).then(response => {
-			return response.error ? res.status(400).json(response.error) : res.status(200).json({
-				status: 1,
-				data: response.data
-			});
+		userModel.update({ id: req.user.id, ...req.body }).then(response => {
+			return response.error ? 
+			res.status(400).json(response.error) : 
+			res.status(200).json({ status: 1, data: response.data })
 		})
 	}
 
 	// We don't want to delete the user account, but change it to { active: false }
 	deleteUser(req, res) {
 		const user = req.user
-		userModel.update({ active: false, _id: req.user._id }).then(response => {
-			return response.error ? res.status(401).json({ status: -1, message: response.error }) : res.status(201).json({ status: 1, data: user._id });
+		userModel.update({ active: false, id: req.user.id }).then(response => {
+			return response.error ? res.status(401).json({ status: -1, message: response.error }) : res.status(200).json({ status: 1, data: response.data });
 		})
 	}
-	async changePassword(req: any, res) {
-		const { old_password, new_password } = req.body;
-		let user = req.user
-		user = await userModel.findOneWithFilter({ email: { $eq: user.email } })
-		const isPasswordValid = auth.comparePassword({ candidatePassword: old_password, hashedPassword: user.password });
-		if (!isPasswordValid) return res.status(401).json({ status: -1, message: 'old password is invalid' });
-		user.password = auth.hashPassword(new_password);
-		userModel.update({ password: user.password, _id: user._id }).then(response => {
-			return response.error ? res.status(401).json({ status: -1, message: response.error }) : res.status(201).json({ status: 1, data: user });
-		})
-	}
+
 	async login(req, res) {
-		const { email, password } = req.body;
-		const user = await userModel.findOneWithFilter({ email: { $eq: email } })
+		const { phone, password } = req.body;
+		const user = await userModel.findOneWithFilter({ phone: phone })
 		if (!user) return res.status(401).json({ status: -1, message: 'invalid credentials' });
 		if (!auth.comparePassword({ candidatePassword: password, hashedPassword: user.password })) return res.status(401).json({ status: '-1', message: 'invalid credentials' });
 		res.json({
 			status: 1,
-			token: auth.generateToken(user._id, user.email, user.username),
+			token: auth.generateToken(user.id, user.phone, user.type),
 			data: user
 		});
-		return this.upDateLoginTime(user._id);
+		return this.upDateLoginTime(user.id);
 	}
 
-	upDateLoginTime(_id) {
-		userModel.update({ active: true, lastLoginAt: Date.now(), _id });
+	upDateLoginTime(id) {
+		userModel.update({ active: true, lastLoginAt: Date.now(), id });
+	}
+
+	async changePassword(req: any, res) {
+		let { old_password, new_password} = req.body;
+		let user = await userModel.findOneWithFilter({id: req.user.id })
+		const isOldPasswordValid = auth.comparePassword({candidatePassword: old_password, hashedPassword: user.password});
+		if (!isOldPasswordValid) return res.status(401).json({ status: -1, message: 'old password is invalid' });
+		// new_password = await auth.hashPassword(new_password);
+
+		userModel.update({password: new_password, id: user.id}).then( response => {
+			return response.error ? res.status(401).json({ status: -1, message: response.error }) : res.status(201).json({ status: 1, data: user });
+		})
 	}
 }

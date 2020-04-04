@@ -1,5 +1,5 @@
 const config = require('./app/config');
-const { io, app, server } = require('./app/connection')
+const { io, app, server, sequelize } = require('./app/connection')
 const Routes = require('./routes/routes');
 
 	
