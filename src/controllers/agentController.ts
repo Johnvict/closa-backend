@@ -27,7 +27,8 @@ export class AgentController {
 	}
 
 	async update(req, res) {
-		agentModel.update({ ...req.body }, req.agent?.id ?? null).then(response => {
+		const id = req.agent ? req.agent.id : null;
+		agentModel.update({ ...req.body }, id).then(response => {
 			return response.error ? 
 			res.status(400).json({status: -1, message: response.error}) : 
 			res.status(200).json({ status: 1, data: response.data })

@@ -4,9 +4,20 @@ const app = express()
 const port = process.env.PORT
 declare var global: any;
 
+const environment = process.env.NODE_ENV
+let db, dbUser, dbPassword
+if (environment == 'production') {
+	db = process.env.PROD_DB_NAME;
+	dbUser = process.env.PROD_DB_USER;
+	dbPassword = process.env.PROD_DB_PASSWORD;
+} else {
+	dbUser = process.env.DB_USER;
+	db = process.env.DB_NAME;
+	dbPassword = process.env.DB_PASSWORD;
+}
+console.table({db, dbUser, dbPassword})
 const Sequelize = require('sequelize');
-
-const sequelize = new Sequelize('next_bk', 'root', '', {
+const sequelize = new Sequelize(db, dbUser, dbPassword, {
 	host: 'localhost',
 	dialect: 'mysql'
 });
