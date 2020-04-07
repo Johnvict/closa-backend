@@ -1,26 +1,14 @@
 import express from 'express'
 const Router = express.Router()
-import { userMiddleware } from './../middleware/user-middleware'
+import { agentMiddleware } from '../middleware/agent-middleware'
 import { userCtrl, validator } from './../app/exported.classes'
 
 const validate = validator.validate;
-// Router.post('/val', validate(validator.phone), (req, res, next) => res.send('Welcome to user. Kinly make a valid request'))
-// Router.get('/all', userMiddleware, (req, res) => userCtrl.allUsers(req, res))
-
 
 /* Create new user */
-Router.post('/', validate(validator.newAgent), (req, res) => userCtrl.createUser(req, res))
+Router.post('/', agentMiddleware, validate(validator.newUser), (req, res) => userCtrl.create(req, res))
 
 /* Update user */
-Router.put('/', userMiddleware, validate(validator.updateAgent), (req, res) => userCtrl.updateUser(req, res))
-
-/* Delete user */
-Router.delete('/', userMiddleware, (req, res) => userCtrl.deleteUser(req, res))
-
-/* Update user password */
-Router.put('/password', userMiddleware, validate(validator.updatePasswordStruct), (req, res) => userCtrl.changePassword(req, res))
-
-/* Authenticate user */
-Router.post('/login', validate(validator.loginData), (req, res) => userCtrl.login(req, res))
+Router.put('/', agentMiddleware, validate(validator.updateUser), (req, res) => userCtrl.update(req, res))
 
 module.exports = Router

@@ -24,12 +24,17 @@ exports = Agent.hasOne(User, {
 });
 exports = Agent.hasMany(Job, {
 	foreignKey: 'user_id',
-	as: 'jobs'
+	as: 'user_jobs'
+});
+exports = Agent.hasMany(Job, {
+	foreignKey: 'worker_id',
+	as: 'worker_jobs'
 });
 exports = Agent.hasMany(SearchHistory, {
 	foreignKey: 'agent_id',
 	as: 'search_histories'
 });
+
 
 
 exports = File.belongsTo(JobSample, {
@@ -75,10 +80,18 @@ exports = JobSample.hasOne(File, {
 	foreignKey: 'job_sample_id',
 	as: 'file'
 });
+exports = JobSample.belongsTo(Worker, {
+	foreignKey: 'worker_id',
+	as: 'job_samples'
+});
 
 exports = Worker.belongsTo(Agent, {
 	foreignKey: 'agent_id',
 	as: 'profile'
+});
+exports = Worker.hasMany(JobSample, {
+	foreignKey: 'worker_id',
+	as: 'job_samples'
 });
 
 exports = User.belongsTo(Agent, {

@@ -30,7 +30,7 @@ export class Authorization {
 			console.log(token);
 			try {
 				const tokenDecoded = jwt.verify(token, this.jwtSecret)
-				req.user = tokenDecoded
+				req.agent = tokenDecoded
 				next()
 			} catch(err) {
 				return res.status(400).send('Invalid token')

@@ -10,13 +10,13 @@ module.exports = {
         primaryKey: true
       },
       phone: {
-        type: Sequelize.STRING(20),
+        type: Sequelize.STRING(15),
         allowNull: false,
         unique: true
       },
       password: {
         type: Sequelize.STRING(),
-        allowNull: false
+        allowNull: true
       },
       type: {
         type: Sequelize.ENUM(["user", "worker"]),

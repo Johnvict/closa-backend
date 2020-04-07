@@ -50,11 +50,11 @@ module.exports = {
         ]),
         defaultValue: "pending"
       },
-      canceled_by: {
+      cancelled_by: {
         type: Sequelize.ENUM(["worker", "user"]),
         allowNull: true
       },
-      canceled_reason: {
+      cancelled_reason: {
         type: Sequelize.ENUM(["price", "trust", "imcapability", "self"]),
         allowNull: true
       },

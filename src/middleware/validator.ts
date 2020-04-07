@@ -2,10 +2,12 @@ import { PasswordAuthValidation } from "../misc/structs";
 const Joi = require('@hapi/joi');
 import { auth } from './../app/exported.classes'
 import { Joi } from '@hapi/joi';
-import { maxHeaderSize } from "http";
 
 
 export class Validator {
+	newAccount = Joi.object({
+		phone: Joi.string().max(15).required(),
+	})
 	newAgent = Joi.object({
 		password: Joi.string().min(5).max(200).required(),
 		phone: Joi.string().min(11).max(15).required(),
@@ -13,6 +15,8 @@ export class Validator {
 	});
 	updateAgent = Joi.object({
 		phone: Joi.string().min(11).max(15),
+		// web: Joi.boolean(),
+		// app: Joi.boolean(),
 		type: Joi.alternatives(['user', 'worker'])
 	});
 	
@@ -20,7 +24,7 @@ export class Validator {
 		date_done: Joi.date().required(),
 		title: Joi.string().required(),
 		file: Joi.object({
-			data: Joi.string().required(),
+			data: Joi.string().required(), // can be base64 string or url (for link)
 			type: Joi.alternatives(['audio', 'video', 'image', 'pdf', 'link']).required()
 		})
 	});
@@ -76,8 +80,8 @@ export class Validator {
 		rating: Joi.alternatives(['1', '2', '3', '4', '5']),
 		amount: Joi.number(),
 		proposed_amount: Joi.number(),
-		canceled_by: Joi.alternatives(['worker', 'user']),
-		canceled_reason: Joi.alternatives(['price', 'trust', 'imcapability', 'self']),
+		cancelled_by: Joi.alternatives(['worker', 'user']),
+		cancelled_reason: Joi.alternatives(['price', 'trust', 'imcapability', 'self']),
 	});
 
 	newWorker = Joi.object({
@@ -99,11 +103,11 @@ export class Validator {
 
 	newUser = Joi.object({
 		name: Joi.string().max(30).required(),
-		occupations: Joi.string().max(50),
+		occupation: Joi.string().max(50),
 	});
 	updateUser = Joi.object({
 		name: Joi.string().max(30),
-		occupations: Joi.string().max(50),
+		occupation: Joi.string().max(50),
 	});
 
 	updatePasswordStruct = Joi.object({
@@ -113,8 +117,10 @@ export class Validator {
 
 	loginData = Joi.object({
 		password: Joi.string().max(50).required(),
-		phone: Joi.string().max(50).required()
+		phone: Joi.string().max(15).required(),
+		// source: Joi.alternatives(['app', 'web']).required()
 	})
+
 
 
 	validateEmail(email): boolean {

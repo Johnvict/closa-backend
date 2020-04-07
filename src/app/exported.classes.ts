@@ -1,6 +1,10 @@
 // import { ChatController } from './../controllers/chatController'
 import { UserController } from './../controllers/userController'
+import { AgentController } from './../controllers/agentController'
 import { UserModel } from "./../models/user";
+import { AgentModel } from "./../models/agent";
+import { WorkerController } from './../controllers/workerController'
+import { WorkerModel } from "./../models/worker";
 import { Authorization } from './../middleware/authorization'
 import { Validator } from './../middleware/validator'
 
@@ -28,10 +32,14 @@ export const sequelize = require('./connection')
  * ! Controllers import for export */
 // export const chatCtrl = new ChatController();
 export const userCtrl = new UserController();
+export const workerCtrl = new WorkerController();
+export const agentCtrl = new AgentController();
 
 /**
  * ! Model import for exports */
+export const agentModel = new AgentModel();
 export const userModel = new UserModel();
+export const workerModel = new WorkerModel();
 
 /** 
  * ! Middleware exports */
