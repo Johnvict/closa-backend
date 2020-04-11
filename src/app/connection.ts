@@ -19,8 +19,11 @@ console.table({db, dbUser, dbPassword})
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(db, dbUser, dbPassword, {
 	host: 'localhost',
-	dialect: 'mysql'
+	dialect: 'mysql',
+	timezone: '+01:00'
 });
+
+
 
 
 sequelize.authenticate().then(() => {
@@ -30,7 +33,8 @@ sequelize.authenticate().then(() => {
 	process.exit(1);
 });
 
-
+app.use(express.static(`${__dirname}/../../public`))
+// app.use(express.static(`${__dirname}/public`))
 app.use((req, res, next) => {
 	res.setHeader("Access-Control-Allow-Origin", "*")
 	res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Authorization, Content-Type, Accept")

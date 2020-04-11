@@ -12,11 +12,25 @@ export interface NewAgent {
 	phone: string;
 	type: 'user' | 'worker';
 }
+export interface NewToken {
+	agent_id: number;
+	token: string;
+	expireAt: Date;
+}
+export interface Token extends Regular {
+	agent_id: number;
+	token: string;
+	expireAt: Date;
+}
 export interface UpdateAgent {
 	phone?: string;
 	type?: 'user' | 'worker';
 	active?: boolean;
 	password?: string;
+	username?: string;
+	email?:  string;
+	dob?: Date | string | number;
+	gender?: 'male' | 'female';
 	lastLoginAt?: Date | string | number;
 	// web?: boolean;
 	// app?: boolean;
@@ -26,6 +40,10 @@ export interface Agent extends Regular {
 	phone: string;
 	password: string;
 	type: 'user' | 'worker';
+	username?: string;
+	email?:  string;
+	dob?: Date | string | number;
+	gender?: 'male' | 'female';
 	active: boolean;
 	lastLoginAt?: Date | string | number;
 	location?: Location;
@@ -39,14 +57,17 @@ export interface NewUser {
 	agent_id: number;
 	name: string;
 	occupation?: string;
+	avatar?: string;
 }
 export interface UpdateUser {
 	agent_id: number;
 	name?: string;
 	occupation?: string;
+	avatar?: string;
 }
 export interface UserStruct extends Regular {
 	name: string;
+	avatar: string;
 	occupation?: string;
 }
 
@@ -54,11 +75,11 @@ export interface UserStruct extends Regular {
 export interface NewWorker {
 	agent_id: number;
 	job: string;
-	business_name: string;
+	name: string;
 	opening_time: string;
 	closing_time: string;
 	working_days: string | string[];
-	business_logo?: string;
+	logo?: string;
 }
 export interface UpdateWorker {
 	agent_id: number;
@@ -66,21 +87,22 @@ export interface UpdateWorker {
 	opening_time?: string;
 	closing_time?: string;
 	working_days?: string | string[];
-	business_logo?: string;
+	logo?: string;
 }
 export interface WorkerStruct extends Regular {
 	agent_id: number;
 	job: string;
-	business_name: string;
+	name: string;
 	opening_time: string;
 	closing_time: string;
 	working_days: string | string[];
-	business_logo?: string;
+	logo?: string;
 	status: 'available' | 'away';
 	job_sample?: JobSample[];
 }
 
-export interface NewSearchHistory extends Regular{
+export interface NewSearchHistory {
+	agent_id: number;
 	key: string;
 }
 export interface SearchHistory extends Regular{
@@ -88,21 +110,34 @@ export interface SearchHistory extends Regular{
 	key: string;
 }
 
+export interface SearchWorkerFromStateTown {
+	job: string;
+	state_or_town: 'state' | 'town';
+	state_or_town_id: number;
+	my_lat: number;
+	my_long: number;
+}
+
 export interface NewLocation {
-	lat: string;
+	agent_id: number
+	lat: string | null;
 	long: string;
 	name: string;
 	image: string;
-	state_id: string;
-	town_id: string;
+	state_id: number;
+	town_id?: number;
+	town_name?: string;
 }
+
 export interface UpdateLocation {
+	agent_id: number
 	lat?: string;
 	long?: string;
 	name?: string;
 	image?: string;
-	state_id?: string;
-	town_id?: string;
+	state_id?: number;
+	town_id?: number;
+	town_name?: string;
 }
 export interface Location extends Regular {
 	agent_id: number;
@@ -110,29 +145,34 @@ export interface Location extends Regular {
 	lat: string;
 	name: string;
 	image: string;
-	state_id: string;
-	town_id: string;
+	state_id: number;
+	town_id: number;
 
 	state?: State;
 	town?: Town;
 }
 
 export interface NewJobSample {
+	worker_id: number;
 	date_done: Date | string;
 	title: string;
-	file: {
-		data: string;
-		type: 'audio' | 'video' | 'image' | 'pdf' | 'link';
-	};
+	link: string | null;
+	type: 'audio' | 'video' | 'image' | 'pdf' | 'link';
 }
 export interface JobSample extends Regular {
 	worker_id: number;
 	date_done: Date | string;
 	title: string;
-	file: File;
+	file: FileStruct;
 }
 
-export interface File extends Regular{
+export interface NewFileStruct {
+	job_sample_id: number;
+	name: string;
+	type: 'audio' | 'video' | 'image' | 'pdf' | 'link';
+	url: string | null;
+}
+export interface FileStruct extends Regular{
 	job_sample_id: number;
 	name: string;
 	type: 'audio' | 'video' | 'image' | 'pdf' | 'link';
@@ -147,6 +187,7 @@ export interface NewJob {
 
 
 export interface UpdateJob {
+	id: number;
 	status?: 'canceled' | 'pending' | 'doing' | 'done_pending' | 'done';
 	start?: Date | string;
 	est_delivery?: Date | string;
@@ -169,19 +210,31 @@ export interface Job extends Regular {
 	feedback?: string;
 	amount?: number;
 	proposed_amount?: number;
-	status: 'canceled' | 'pending' | 'doing' | 'done_pending' | 'done';
+	status: 'cancelled' | 'pending' | 'doing' | 'done_pending' | 'done';
 	cancelled_by?: 'worker' | 'user';
 	cancelled_reason?: 'price' | 'trust' | 'imcapability' | 'self';
 }
 
+export interface JobByStatusFromStateOrTown {
+	title: string;
+	state_or_town: 'state' | 'town';
+	state_or_town_id: number;
+	start_range: Date | string;
+	end_range: Date | string;
+}
+
 export interface NewUpdateState {
+	id: number;
 	name?: string;
 }
 export interface State extends Regular {
 	name: string;
 }
 export interface NewUpdateTown {
+	id?: number;
 	state_id?: number;
+	long?: string;
+    lat?: string;
 	name?: string;
 }
 export interface Town extends Regular {

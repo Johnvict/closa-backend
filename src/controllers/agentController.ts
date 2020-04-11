@@ -1,80 +1,68 @@
-import { LoginStruct, Agent } from './../misc/structs';
-import { auth, agentModel } from './../app/exported.classes'
+import { LoginStruct } from './../misc/structs';
+import { auth, agentModel, AppError } from './../app/exported.classes'
 
 export class AgentController {
 
 	// For a super admin who wants to see all registered user
-	allAgents(req, res) {
-		agentModel.getAll().then(response => {
-			return response.error ? res.status(400).json({
-				status: -1,
-				message: response.error
-			}) : res.status(200).json({
-				status: 1,
-				data: response.data
-			})
+	async allAgents(req, res, next) {
+		res.status(200).json({
+			status: 1,
+			data: await agentModel.getAll(next)
 		})
 	}
 
 
-
-	async create(req, res) {
-		agentModel.createAgent(req.body).then(response => {
-			return response.exist ? 
-				res.status(200).json({ status: -1, data: response.data, exist: true }) : 
-				res.status(201).json({ status: 1, data: response.data });
+	async create(req, res, next) {
+		return res.status(201).json({
+			status: 1,
+			data: await agentModel.createAgent(next, req.body)
 		})
 	}
 
-	async update(req, res) {
-		const id = req.agent ? req.agent.id : null;
-		agentModel.update({ ...req.body }, id).then(response => {
-			return response.error ? 
-			res.status(400).json({status: -1, message: response.error}) : 
-			res.status(200).json({ status: 1, data: response.data })
+	async update(req, res, next) {
+		const id = req.agent.id;
+		console.table(req.agent)
+		const isToken = req.body.token;
+		agentModel.update(next, { ...req.body }, isToken, id).then(response => {
+			if (response) return res.status(200).json({ status: 1, data: response })
 		})
 	}
 
-	// We don't want to delete the user account, but change it to { active: false }
-	delete(req, res) {
-		agentModel.update({ active: false }, req.agent.id).then(response => {
-			return response.error ?
-				res.status(400).json({ status: -1, message: response.error }) :
-				res.status(200).json({ status: 1, data: response.data });
+	async delete(req, res, next) {
+		return res.status(200).json({
+			status: 1,
+			data: await agentModel.update(next, { active: false }, req.agent.id)
 		})
 	}
 
-	async login(req, res) {
+	async login(req, res, next) {
 		const loginData: LoginStruct = req.body;
-		agentModel.findOneWithFilter({ phone: loginData.phone }).then( response => {
-			if (response.data) {
-				if (!auth.comparePassword({
-					candidatePassword: loginData.password,
-					hashedPassword: response.data.password
-				})) return res.status(401).json({ status: '-1', message: 'invalid credentials' });
+		const userData = await agentModel.findOneWithFilter(next, { phone: loginData.phone }, 'invalid credentials')
+		if (userData) {
+			if (!userData.password) return next(new AppError('please create your account completely', 400, -1))
+			if (await auth.comparePassword(next, { candidatePassword: loginData.password, hashedPassword: userData.password })) {
+				const otherid = userData.business ? userData.business.id : userData.profile ? userData.profile.id : 0;
 				res.status(200).json({
 					status: 1,
-					token: auth.generateToken(response.data.id, response.data.phone, response.data.type),
-					data: response.data
+					token: auth.generateToken(userData.id, userData.phone, userData.type, otherid),
+					data: userData
 				})
-				return this.upDateLoginTime(response.data.id);
+				return this.upDateLoginTime(userData.id, next);
 			}
-			return res.status(401).json({ status: -1, message: 'invalid credentials' });
-		});
+		}
 	}
 
-	upDateLoginTime(id) {
-		agentModel.update({ active: true, lastLoginAt: Date.now() }, id);
+	upDateLoginTime(id, next) {
+		agentModel.update(next, { active: true, lastLoginAt: Date.now() }, id);
 	}
 
-	async changePassword(req: any, res) {
-		let { old_password, new_password} = req.body;
-		let agent = await agentModel.findOneWithFilter({id: req.agent.id })
-		if (agent.data) {
-			const isOldPasswordValid = auth.comparePassword({candidatePassword: old_password, hashedPassword: agent.data.password});
-			if (!isOldPasswordValid) return res.status(401).json({ status: -1, message: 'old password is invalid' });	
-			agentModel.update({password: new_password }, agent.data.id).then( response => {
-				return response.error ? res.status(401).json({ status: -1, message: response.error }) : res.status(201).json({ status: 1, data: agent.data });
+	async changePassword(req: any, res, next) {
+		let { old_password, new_password } = req.body;
+		let agent = await agentModel.findOneWithFilter(next, { id: req.agent.id }, 'invlid credentials')
+		if (auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: agent.password })) {
+			agentModel.update(next, { password: new_password }, agent.id).then(response => {
+				console.log(response)
+				if (response) return res.status(200).json({ status: 1, data: response });
 			})
 		}
 	}

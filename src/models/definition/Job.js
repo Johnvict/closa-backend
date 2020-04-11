@@ -50,7 +50,7 @@ Job.init(
     },
     status: {
       type: Sequelize.ENUM([
-        "canceled",
+        "cancelled",
         "pending",
         "doing",
         "done_pending",

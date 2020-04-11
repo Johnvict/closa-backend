@@ -17,6 +17,10 @@ User.init(
         key: "id"
       }
     },
+    avatar: {
+      type: Sequelize.STRING(),
+      defaultValue: "avatar.jpg"
+    },
     name: {
       type: Sequelize.STRING(30),
       allowNull: false

@@ -1,0 +1,23 @@
+# RewriteEngine On
+# RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{
+# REQUEST_FILENAME} !-d
+# RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+
+
+DirectoryIndex disabled
+RewriteEngine On
+#RewriteRule ^$ http://127.0.0.1:37589/ [P,L]
+RewriteRule ^$ http://127.0.0.1:3030/ [P,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteRule ^(.*)$ http://127.0.0.1:37589/$1 [P,L]
+RewriteRule ^(.*)$ http://127.0.0.1:3030/$1 [P,L]
+
+
+#PassengerBaseURI /
+#PassengerAppRoot /home/mybacken/myApp/
+#PassengerAppType node
+#PassengerStartupFile app.js
+

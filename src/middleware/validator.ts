@@ -1,6 +1,4 @@
-import { PasswordAuthValidation } from "../misc/structs";
 const Joi = require('@hapi/joi');
-import { auth } from './../app/exported.classes'
 import { Joi } from '@hapi/joi';
 
 
@@ -9,33 +7,42 @@ export class Validator {
 		phone: Joi.string().max(15).required(),
 	})
 	newAgent = Joi.object({
+		agent_id: Joi.number().required(),
 		password: Joi.string().min(5).max(200).required(),
 		phone: Joi.string().min(11).max(15).required(),
+		token: Joi.string().min(6).max(6).required(),
 		type: Joi.alternatives(['user', 'worker']).required()
 	});
 	updateAgent = Joi.object({
 		phone: Joi.string().min(11).max(15),
-		// web: Joi.boolean(),
-		// app: Joi.boolean(),
+		username: Joi.string().min(3).max(25),
+		email: Joi.string().email().max(25),
+		dob: Joi.date(),
+		gender: Joi.alternatives(['male', 'female']),
 		type: Joi.alternatives(['user', 'worker'])
 	});
-	
+
+
+	// if type is link, link will be provided, else null
+	// if type is not link, link will be saved as null then updated on file upload
 	newJobSample = Joi.object({
 		date_done: Joi.date().required(),
 		title: Joi.string().required(),
-		file: Joi.object({
-			data: Joi.string().required(), // can be base64 string or url (for link)
-			type: Joi.alternatives(['audio', 'video', 'image', 'pdf', 'link']).required()
-		})
+		link: Joi.string(),
+		type: Joi.alternatives(['audio', 'video', 'image', 'pdf', 'link']).required()
 	});
+
+	jobSampleFile = Joi.object({
+		file: Joi.string(),
+	})
 
 	newLocation = Joi.object({
 		lat: Joi.string().required(),
 		long: Joi.string().required(),
 		name: Joi.string().max(100).required(),
-		image: Joi.string().required(),
+		image: Joi.string(),
 		state_id: Joi.number().required(),
-		town_id: Joi.string().required(),
+		town_id: Joi.number()
 	});
 	updateLocation = Joi.object({
 		lat: Joi.string(),
@@ -43,18 +50,58 @@ export class Validator {
 		name: Joi.string().max(100),
 		image: Joi.string(),
 		state_id: Joi.number(),
-		town_id: Joi.string(),
+		town_id: Joi.number()
 	});
 
 	newJob = Joi.object({
 		worker_id: Joi.number().required(),
-		user_id: Joi.string().required(),
+		user_id: Joi.number().required(),
 		title: Joi.string().max(100).required(),
 	});
+	loadMoreJobs = Joi.object({
+		worker_id: Joi.number().required(),
+		user_id: Joi.number().required(),
+		page: Joi.number().required(),
+	});
+	jobsByStatusFrom = Joi.object({
+		state_or_town: Joi.alternatives(['state', 'town']).required(),
+		state_or_town_id: Joi.number().required(),
+		start_range: Joi.date(),
+		end_range: Joi.date()
+	});
+
+	jobWithTitleByStatusFrom = Joi.object({
+		state_or_town: Joi.alternatives(['state', 'town']).required(),
+		state_or_town_id: Joi.number().required(),
+		title: Joi.string().required(),
+		start_range: Joi.date(),
+		end_range: Joi.date()
+	});
+	availableWorkerWithjobsTitle = Joi.object({
+		state_or_town: Joi.alternatives(['state', 'town']).required(),
+		state_or_town_id: Joi.number().required(),
+		job: Joi.string().required(),
+		my_lat: Joi.string().required(),
+		my_long: Joi.string().required()
+	});
+
 
 	newSearchHistory = Joi.object({
 		key: Joi.string().max(30).required(),
 	});
+
+	states = Joi.object().keys({
+		name: Joi.string().max(30).required()
+	})
+	newManyStates = Joi.array().items(this.states)
+
+	towns = Joi.object().keys({
+		state_id: Joi.number().required(),
+		name: Joi.string().max(30).required(),
+		lat: Joi.string().required(),
+		long: Joi.string().required()
+	})
+	newManyTowns = Joi.array().items(this.towns);
 
 	newState = Joi.object({
 		name: Joi.string().max(30).required(),
@@ -62,18 +109,26 @@ export class Validator {
 	updateState = Joi.object({
 		name: Joi.string().max(30),
 	});
+	deleteWithId = Joi.object({
+		id: Joi.number(),
+	});
 
 	newTown = Joi.object({
 		state_id: Joi.number().required(),
 		name: Joi.string().max(30).required(),
+		lat: Joi.string().required(),
+		long: Joi.string().required()
 	});
 	updateTown = Joi.object({
 		state_id: Joi.number(),
 		name: Joi.string().max(30),
+		lat: Joi.string(),
+		long: Joi.string()
 	});
 
 	updateJob = Joi.object({
-		status: Joi.alternatives(['canceled', 'pending', 'doing', 'done_pending', 'done']),
+		id: Joi.number(),
+		status: Joi.alternatives(['cancelled', 'pending', 'doing', 'done_pending', 'done']),
 		start: Joi.date(),
 		est_delivery: Joi.date(),
 		delivery: Joi.date(),
@@ -85,12 +140,12 @@ export class Validator {
 	});
 
 	newWorker = Joi.object({
-		job: Joi.string().max(80).required(),
-		business_name: Joi.string().max(50).required(),
-		opening_time: Joi.string().max(6).required(),
-		closing_time: Joi.string().max(6).required(),
-		working_days: Joi.string().max(15).required(),
-		business_logo: Joi.string(),
+		job: Joi.string().required(),
+		name: Joi.string().min(3).max(50).required(),
+		opening_time: Joi.string().min(5).max(6).required(),
+		closing_time: Joi.string().min(5).max(6).required(),
+		working_days: Joi.string().min(1).max(15).required(),
+		logo: Joi.string(),
 	});
 
 	updateWorker = Joi.object({
@@ -98,16 +153,18 @@ export class Validator {
 		opening_time: Joi.string().max(6),
 		closing_time: Joi.string().max(6),
 		working_days: Joi.string().max(15),
-		business_logo: Joi.string(),
+		logo: Joi.string(),
 	});
 
 	newUser = Joi.object({
 		name: Joi.string().max(30).required(),
 		occupation: Joi.string().max(50),
+		avatar: Joi.string()
 	});
 	updateUser = Joi.object({
 		name: Joi.string().max(30),
 		occupation: Joi.string().max(50),
+		avatar: Joi.string()
 	});
 
 	updatePasswordStruct = Joi.object({
@@ -128,14 +185,10 @@ export class Validator {
 		return match.test(String(email).toLowerCase())
 	}
 
-	validatePassword(data: PasswordAuthValidation): boolean {
-		return auth.comparePassword(data);
-	}
-
 	validate(schema) {
 		return (req, res, next) => {
 			const { error } = schema.validate(req.body)
-			if (error) return res.status(400).send(error.details[0].message)
+			if (error) return res.status(400).json({message: error.details[0].message, status: -1})
 			next()
 		}
 	}

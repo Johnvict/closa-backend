@@ -18,9 +18,11 @@ Town.init(
 	  }
 	},
 	name: {
-	  type: Sequelize.STRING(30),
-	  allowNull: false
+		type: Sequelize.STRING(30),
+		allowNull: false
 	},
+	long: Sequelize.STRING(10),
+	lat: Sequelize.STRING(10),
 	createdAt: Sequelize.DATE,
     updatedAt: Sequelize.DATE
   },

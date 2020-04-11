@@ -1,4 +1,5 @@
-import { PasswordAuthValidation, UserStruct } from "../misc/structs";
+import { AppError } from './../app/exported.classes';
+import { PasswordAuthValidation } from "../misc/structs";
 const  bcrypt =  require('bcrypt');
 const salt = bcrypt.genSaltSync(10)
 const  jwt = require('jsonwebtoken');
@@ -9,16 +10,19 @@ export class Authorization {
 	jwtSecret = process.env.JWT_SECRET;
 
 
-	comparePassword(data: PasswordAuthValidation): boolean {
-		return bcrypt.compareSync(data.candidatePassword, data.hashedPassword);
+	comparePassword(next, data: PasswordAuthValidation){
+		if (bcrypt.compareSync(data.candidatePassword, data.hashedPassword)) {
+			return true
+		}
+		next(new AppError('invalid credentials', 401, -1))
 	}
 	
 	hashPassword(password: string) {
 		return bcrypt.hashSync(password, salt);
 	}
 
-	generateToken(id: number, phone: string, type: string) {
-		return jwt.sign({id, phone, type}, this.jwtSecret, {
+	generateToken(id: number, phone: string, type: string, otherid: number) {
+		return jwt.sign({id, phone, type, otherid}, this.jwtSecret, {
 			expiresIn: 86400		// Any issued token EXPIRES IN 1 day
 		}); 
 	}
