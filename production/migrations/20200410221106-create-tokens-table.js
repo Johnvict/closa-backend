@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 module.exports = {
     up: (queryInterface, Sequelize) => {
-        return queryInterface.createTable("users", {
+        return queryInterface.createTable('tokens', {
             id: {
                 type: Sequelize.INTEGER(11),
                 allowNull: false,
@@ -15,23 +15,16 @@ module.exports = {
                     key: "id"
                 }
             },
-            avatar: {
-                type: Sequelize.STRING(),
-                defaultValue: "avatar.jpg"
-            },
-            name: {
-                type: Sequelize.STRING(30),
+            token: {
+                type: Sequelize.STRING(6),
                 allowNull: false
             },
-            occupation: {
-                type: Sequelize.STRING(50),
-                allowNull: true
-            },
+            expireAt: Sequelize.DATE,
             createdAt: Sequelize.DATE,
             updatedAt: Sequelize.DATE
         });
     },
     down: (queryInterface, Sequelize) => {
-        return queryInterface.dropTable("users");
+        return queryInterface.dropTable('tokens');
     }
 };

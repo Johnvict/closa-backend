@@ -11,47 +11,46 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
 const Op = require('sequelize').Op;
-class UserModel {
+class TokenModel {
     constructor() { }
-    create(next, newUser) {
+    create(next, newToken) {
         return __awaiter(this, void 0, void 0, function* () {
-            return exported_classes_1.DbModel.User.findOrCreate({
-                where: { [Op.or]: [{ agent_id: newUser.agent_id }] },
-                defaults: newUser
+            return exported_classes_1.DbModel.Token.findOrCreate({
+                where: { [Op.or]: [{ agent_id: newToken.agent_id }] },
+                defaults: newToken
             }).then((queryRes) => __awaiter(this, void 0, void 0, function* () {
-                if (queryRes[1])
-                    return yield this.getOne(next, queryRes[0].id);
-                return next(new exported_classes_1.AppError('user profile already created', 400, -1));
+                return queryRes[0];
             })).catch(e => console.log(e));
         });
     }
-    getOne(next, id) {
+    validateToken(receivedToken) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield exported_classes_1.DbModel.User.findByPk(id);
+            const token = yield exported_classes_1.DbModel.Token.findOne({ where: { agent_id: receivedToken.agent_id } });
+            if (token) {
+                console.table(Object.assign(Object.assign({}, token), { trueOrFalse: ((token.token == receivedToken.token) && (new Date(token.expireAt).getTime() >= Date.now())) }));
+                return (token.token == receivedToken.token) && (new Date(token.expireAt).getTime() >= Date.now()) ? true : false;
+            }
+            return false;
         });
     }
-    findOneWithFilter(next, filterArgs) {
+    delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield exported_classes_1.DbModel.User.findOne({ where: filterArgs });
-            return user ? user : next(new exported_classes_1.AppError('no user account found with this credential', 400, -1));
+            try {
+                exported_classes_1.DbModel.Token.destroy({ where: { agent_id: id } });
+            }
+            catch (err) {
+                console.log(err);
+            }
         });
     }
-    whatToUpdate(user) {
-        const newData = {};
-        for (let key in user) {
-            newData[key] = user[key];
-        }
-        return newData;
-    }
-    update(next, user) {
+    update(token) {
         return __awaiter(this, void 0, void 0, function* () {
-            const dataToStore = this.whatToUpdate(user);
-            return exported_classes_1.DbModel.User.update(dataToStore, { returning: true, where: { agent_id: user.agent_id } })
+            return exported_classes_1.DbModel.Token.update({ token: token.token }, { returning: true, where: { agent_id: token.agent_id } })
                 .then((_) => __awaiter(this, void 0, void 0, function* () {
-                return yield this.findOneWithFilter(next, { agent_id: user.agent_id });
+                return yield exported_classes_1.DbModel.Token.findOne({ where: { agent_id: token.agent_id } });
             }))
                 .catch(e => console.log(e));
         });
     }
 }
-exports.UserModel = UserModel;
+exports.TokenModel = TokenModel;

@@ -6,7 +6,11 @@ class Worker extends Model {
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         let attributes = Object.assign({}, this.get());
         if (attributes["working_days"])
-            attributes["working_days"] = attributes["working_days"].split(',').map(eachNum => {
+            attributes["working_days"] = attributes["working_days"]
+                .split(',')
+                .sort()
+                .filter(d => d < 7 && d >= 0)
+                .map(eachNum => {
                 return days[eachNum * 1];
             });
         return attributes;
@@ -30,7 +34,7 @@ Worker.init({
         type: Sequelize.STRING(80),
         allowNull: false
     },
-    business_name: {
+    name: {
         type: Sequelize.STRING(50)
     },
     opening_time: {
@@ -42,9 +46,9 @@ Worker.init({
     working_days: {
         type: Sequelize.STRING(15)
     },
-    business_logo: {
+    logo: {
         type: Sequelize.STRING(),
-        allowNull: true
+        defaultValue: 'logo.jpg'
     },
     status: {
         type: Sequelize.Sequelize.ENUM(["available", "away"]),

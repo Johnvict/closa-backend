@@ -39,15 +39,15 @@ exports = File.belongsTo(JobSample, {
 });
 exports = Job.belongsTo(Agent, {
     foreignKey: 'user_id',
-    as: 'user_jobs'
+    as: 'user'
 });
 exports = Job.belongsTo(Agent, {
     foreignKey: 'worker_id',
-    as: 'worker_jobs'
+    as: 'worker'
 });
 exports = SearchHistory.belongsTo(Agent, {
     foreignKey: 'agent_id',
-    as: 'search_history'
+    as: 'agent'
 });
 exports = State.hasMany(Town, {
     foreignKey: 'state_id',
@@ -59,7 +59,7 @@ exports = State.hasMany(Location, {
 });
 exports = Town.belongsTo(State, {
     foreignKey: 'state_id',
-    as: 'towns'
+    as: 'state'
 });
 exports = Town.hasMany(Location, {
     foreignKey: 'town_id',
@@ -75,7 +75,7 @@ exports = JobSample.belongsTo(Worker, {
 });
 exports = Worker.belongsTo(Agent, {
     foreignKey: 'agent_id',
-    as: 'profile'
+    as: 'agent'
 });
 exports = Worker.hasMany(JobSample, {
     foreignKey: 'worker_id',

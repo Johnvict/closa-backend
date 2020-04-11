@@ -19,7 +19,7 @@ module.exports = {
                 type: Sequelize.STRING(100),
                 allowNull: false
             },
-            business_name: {
+            name: {
                 type: Sequelize.STRING(150)
             },
             opening_time: {
@@ -31,9 +31,9 @@ module.exports = {
             working_days: {
                 type: Sequelize.STRING(100)
             },
-            business_logo: {
+            logo: {
                 type: Sequelize.STRING(),
-                allowNull: true
+                defaultValue: 'logo.jpg'
             },
             status: {
                 type: Sequelize.Sequelize.ENUM(["available", "away"]),

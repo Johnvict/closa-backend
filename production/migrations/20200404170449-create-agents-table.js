@@ -13,6 +13,24 @@ module.exports = {
                 allowNull: false,
                 unique: true
             },
+            username: {
+                type: Sequelize.STRING(),
+                allowNull: true,
+                unique: true
+            },
+            email: {
+                type: Sequelize.STRING(),
+                allowNull: true,
+                unique: true
+            },
+            dob: {
+                type: Sequelize.DATE,
+                allowNull: true
+            },
+            gender: {
+                type: Sequelize.ENUM(["male", "female"]),
+                allowNull: true
+            },
             password: {
                 type: Sequelize.STRING(),
                 allowNull: true

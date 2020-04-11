@@ -11,10 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
 class WorkerController {
-    create(req, res) {
+    create(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.agent.type != 'worker')
-                return res.status(400).json({ status: -1, message: 'This is not a worker account' });
             exported_classes_1.workerModel.create(Object.assign(Object.assign({}, req.body), { agent_id: req.agent.id })).then(response => {
                 return response.exist ?
                     res.status(200).json({ status: -1, data: response.data, exist: true }) :
@@ -22,10 +20,40 @@ class WorkerController {
             });
         });
     }
+    createJobSample(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            exported_classes_1.jobSampleModel.create(next, Object.assign(Object.assign({}, req.body), { worker_id: req.agent.otherid })).then(response => {
+                if (response) {
+                    res.status(201).json({ status: 1, data: response });
+                }
+            });
+        });
+    }
+    updateFileLink(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const whatToSave = {
+                url: req.body.fileUrl,
+                id: req.params.id,
+                job_sample_id: req.params.job_sample_id
+            };
+            exported_classes_1.jobSampleModel.saveFileLink(next, whatToSave).then(response => {
+                return response ?
+                    res.status(200).json({ status: 1, data: response }) :
+                    res.status(400).json({ status: -1, message: 'error updating file url' });
+            });
+        });
+    }
+    deleteJobSample(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            exported_classes_1.jobSampleModel.delete(next, req.body.id).then(response => {
+                if (response) {
+                    res.status(201).json({ status: 1, data: 'job sample deleted successfully' });
+                }
+            });
+        });
+    }
     update(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.agent.type != 'worker')
-                return res.status(400).json({ status: -1, message: 'This is not a worker account' });
             exported_classes_1.workerModel.update(Object.assign(Object.assign({}, req.body), { agent_id: req.agent.id })).then(response => {
                 return response ?
                     res.status(200).json({ status: 1, data: response }) :

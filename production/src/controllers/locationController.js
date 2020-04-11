@@ -10,23 +10,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
-class UserController {
+class LocationController {
     create(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.agent.type != 'user')
-                return next(new exported_classes_1.AppError('This is not a user account', 400, -1));
-            const data = yield exported_classes_1.userModel.create(next, Object.assign(Object.assign({}, req.body), { agent_id: req.agent.id }));
-            if (data) {
+            const data = yield exported_classes_1.locationModel.create(next, Object.assign(Object.assign({}, req.body), { agent_id: req.agent.id }));
+            if (data)
                 return res.status(201).json({ status: 1, data });
-            }
         });
     }
     update(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.agent.type != 'user')
-                return next(new exported_classes_1.AppError('This is not a user account', 400, -1));
-            return res.status(200).json({ status: 1, data: yield exported_classes_1.userModel.update(next, Object.assign(Object.assign({}, req.body), { agent_id: req.agent.id })) });
+            // console.log('48: REQUEST IMAGE', req.body)
+            const data = yield exported_classes_1.locationModel.update(next, Object.assign(Object.assign({}, req.body), { agent_id: req.agent.id }));
+            if (data)
+                return res.status(200).json({ status: 1, data });
         });
     }
 }
-exports.UserController = UserController;
+exports.LocationController = LocationController;

@@ -1,32 +1,31 @@
 "use strict";
 const Sequelize = require("sequelize");
 const Model = Sequelize.Model;
-class Town extends Model {
+class Token extends Model {
 }
-Town.init({
+Token.init({
     id: {
         type: Sequelize.INTEGER(11),
         allowNull: false,
         autoIncrement: true,
         primaryKey: true
     },
-    state_id: {
+    agent_id: {
         type: Sequelize.INTEGER(11),
         references: {
-            model: "states",
+            model: "agents",
             key: "id"
         }
     },
-    name: {
-        type: Sequelize.STRING(30),
+    token: {
+        type: Sequelize.STRING(6),
         allowNull: false
     },
-    long: Sequelize.STRING(10),
-    lat: Sequelize.STRING(10),
+    expireAt: Sequelize.DATE,
     createdAt: Sequelize.DATE,
     updatedAt: Sequelize.DATE
 }, {
     sequelize,
-    modelName: "towns"
+    modelName: "tokens"
 });
-module.exports = Town;
+module.exports = Token;

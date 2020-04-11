@@ -12,78 +12,72 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
 class AgentController {
     // For a super admin who wants to see all registered user
-    allAgents(req, res) {
-        exported_classes_1.agentModel.getAll().then(response => {
-            return response.error ? res.status(400).json({
-                status: -1,
-                message: response.error
-            }) : res.status(200).json({
+    allAgents(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            res.status(200).json({
                 status: 1,
-                data: response.data
+                data: yield exported_classes_1.agentModel.getAll(next)
             });
         });
     }
-    create(req, res) {
+    create(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            exported_classes_1.agentModel.createAgent(req.body).then(response => {
-                return response.exist ?
-                    res.status(200).json({ status: -1, data: response.data, exist: true }) :
-                    res.status(201).json({ status: 1, data: response.data });
+            return res.status(201).json({
+                status: 1,
+                data: yield exported_classes_1.agentModel.createAgent(next, req.body)
             });
         });
     }
-    update(req, res) {
+    update(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const id = req.agent ? req.agent.id : null;
-            exported_classes_1.agentModel.update(Object.assign({}, req.body), id).then(response => {
-                return response.error ?
-                    res.status(400).json({ status: -1, message: response.error }) :
-                    res.status(200).json({ status: 1, data: response.data });
+            const id = req.agent.id;
+            console.table(req.agent);
+            const isToken = req.body.token;
+            exported_classes_1.agentModel.update(next, Object.assign({}, req.body), isToken, id).then(response => {
+                if (response)
+                    return res.status(200).json({ status: 1, data: response });
             });
         });
     }
-    // We don't want to delete the user account, but change it to { active: false }
-    delete(req, res) {
-        exported_classes_1.agentModel.update({ active: false }, req.agent.id).then(response => {
-            return response.error ?
-                res.status(400).json({ status: -1, message: response.error }) :
-                res.status(200).json({ status: 1, data: response.data });
+    delete(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return res.status(200).json({
+                status: 1,
+                data: yield exported_classes_1.agentModel.update(next, { active: false }, req.agent.id)
+            });
         });
     }
-    login(req, res) {
+    login(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const loginData = req.body;
-            exported_classes_1.agentModel.findOneWithFilter({ phone: loginData.phone }).then(response => {
-                if (response.data) {
-                    if (!exported_classes_1.auth.comparePassword({
-                        candidatePassword: loginData.password,
-                        hashedPassword: response.data.password
-                    }))
-                        return res.status(401).json({ status: '-1', message: 'invalid credentials' });
+            const userData = yield exported_classes_1.agentModel.findOneWithFilter(next, { phone: loginData.phone }, 'invalid credentials');
+            if (userData) {
+                if (!userData.password)
+                    return next(new exported_classes_1.AppError('please create your account completely', 400, -1));
+                if (yield exported_classes_1.auth.comparePassword(next, { candidatePassword: loginData.password, hashedPassword: userData.password })) {
+                    const otherid = userData.business ? userData.business.id : userData.profile ? userData.profile.id : 0;
                     res.status(200).json({
                         status: 1,
-                        token: exported_classes_1.auth.generateToken(response.data.id, response.data.phone, response.data.type),
-                        data: response.data
+                        token: exported_classes_1.auth.generateToken(userData.id, userData.phone, userData.type, otherid),
+                        data: userData
                     });
-                    return this.upDateLoginTime(response.data.id);
+                    return this.upDateLoginTime(userData.id, next);
                 }
-                return res.status(401).json({ status: -1, message: 'invalid credentials' });
-            });
+            }
         });
     }
-    upDateLoginTime(id) {
-        exported_classes_1.agentModel.update({ active: true, lastLoginAt: Date.now() }, id);
+    upDateLoginTime(id, next) {
+        exported_classes_1.agentModel.update(next, { active: true, lastLoginAt: Date.now() }, id);
     }
-    changePassword(req, res) {
+    changePassword(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             let { old_password, new_password } = req.body;
-            let agent = yield exported_classes_1.agentModel.findOneWithFilter({ id: req.agent.id });
-            if (agent.data) {
-                const isOldPasswordValid = exported_classes_1.auth.comparePassword({ candidatePassword: old_password, hashedPassword: agent.data.password });
-                if (!isOldPasswordValid)
-                    return res.status(401).json({ status: -1, message: 'old password is invalid' });
-                exported_classes_1.agentModel.update({ password: new_password }, agent.data.id).then(response => {
-                    return response.error ? res.status(401).json({ status: -1, message: response.error }) : res.status(201).json({ status: 1, data: agent.data });
+            let agent = yield exported_classes_1.agentModel.findOneWithFilter(next, { id: req.agent.id }, 'invlid credentials');
+            if (exported_classes_1.auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: agent.password })) {
+                exported_classes_1.agentModel.update(next, { password: new_password }, agent.id).then(response => {
+                    console.log(response);
+                    if (response)
+                        return res.status(200).json({ status: 1, data: response });
                 });
             }
         });

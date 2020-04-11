@@ -23,7 +23,8 @@ console.table({ db, dbUser, dbPassword });
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(db, dbUser, dbPassword, {
     host: 'localhost',
-    dialect: 'mysql'
+    dialect: 'mysql',
+    timezone: '+01:00'
 });
 sequelize.authenticate().then(() => {
     console.log('DB Connection established successfully.');
@@ -31,6 +32,8 @@ sequelize.authenticate().then(() => {
     console.error('FATAL ERROR, Unable to connect to the DB:', err);
     process.exit(1);
 });
+app.use(express_1.default.static(`${__dirname}/../../public`));
+// app.use(express.static(`${__dirname}/public`))
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Authorization, Content-Type, Accept");
