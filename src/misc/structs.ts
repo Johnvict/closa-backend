@@ -221,6 +221,8 @@ export interface JobByStatusFromStateOrTown {
 	state_or_town_id: number;
 	start_range: Date | string;
 	end_range: Date | string;
+	grouped_by: string;
+	page?: number
 }
 
 export interface NewUpdateState {

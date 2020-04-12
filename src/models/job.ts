@@ -48,9 +48,24 @@ export class JobModel {
 	}
 
 	async getAll(): Promise<Job[]> {
-		return await DbModel.Job.findAll({ include: this.jobRelations });
+		return DbModel.Job.findAndCountAll({ order: [['updatedAt', 'DESC']], limit: 20, include: this.jobRelations }).then( result => {
+			const isLastPageNoMore = result.count >= 20 ? false : true;
+			return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
+		});
+	}
+	async getAllMore(page): Promise<{ data: Job[], total: number, lastPage: boolean }> {
+		return DbModel.Job.findAndCountAll({
+			order: [['updatedAt', 'DESC']],
+			limit: 20,
+			offset: 20 * page
+		}).then(result => {
+			const pageIncMonitor = (page + 2) * 20;
+			const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
+			return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
+		})
 	}
 
+	// ? Load more jobs for a user
 	async getMore(query: { page: number, worker_id: number, user_id: number }): Promise<{ data: Job[], total: number, lastPage: boolean }> {
 		return DbModel.Job.findAndCountAll({
 			where: {
@@ -95,7 +110,24 @@ export class JobModel {
 		return arr;
 	}
 
-	async jobsStatusWithTitleFrom(filter: JobByStatusFromStateOrTown) {
+	async jobsByTitleAndStatusFromStateOrTownForAdmin(filter: JobByStatusFromStateOrTown) {
+		const result = await this.loadJobsByTitleAndStatusFromStateOrTown(filter);
+
+		const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
+
+		const pageIncMonitor = ((filter.page as number) + 1) * 20;
+		const isLastPageNoMore = total >= pageIncMonitor ? false : true;
+		const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
+		return { total, lastPage: isLastPageNoMore, more: !isLastPageNoMore, summary: regroup, data: result.rows, }
+	}
+	async jobsByTitleAndStatusFromStateOrTownForChart(filter: JobByStatusFromStateOrTown) {
+		const result = await this.loadJobsByTitleAndStatusFromStateOrTown(filter);
+		const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
+		const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
+		return { total, data: regroup }
+	}
+
+	async loadJobsByTitleAndStatusFromStateOrTown(filter: JobByStatusFromStateOrTown) {
 		const searchKeys = await this.convertTitle(filter.title);
 		const filterArg = await this.formatIntoQueryArray(searchKeys)
 		return DbModel.Job.findAndCountAll({
@@ -103,22 +135,38 @@ export class JobModel {
 				[Op.and]: [
 					{ createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] } },
 					{ title: { [Op.or]: filterArg } }
-				]
+				] 
 			},
 			include: {
 				model: DbModel.Agent, as: 'worker', required: true, include: {
 					model: DbModel.Location, as: 'location', required: true, where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id }
 				}
 			},
-			group: ['status']
-		}).then(result => {
-			const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
-			const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
-			return { total, data: regroup }
+			limit: filter.page ? 20 : null,
+			offset: filter.page ? 20 * (filter.page - 1) : null,
+			group: [filter.grouped_by]
 		})
 	}
-	async jobsStatusFrom(filter: JobByStatusFromStateOrTown) {
+	jobsStatusByTitleFromStateOrTown
+	async jobsBasedOnStatusFromStateOrTownForChart(filter: JobByStatusFromStateOrTown) {
+		const result = await this.loadJobsBasedOnStatusFromStateOrTown(filter);
+		const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
+		const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
+		return { total, data: regroup }
+	}
 
+	async jobsBasedOnStatusFromStateOrTownForAdmin(filter: JobByStatusFromStateOrTown) {
+		const result = await this.loadJobsBasedOnStatusFromStateOrTown(filter);
+
+		const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
+
+		const pageIncMonitor = ((filter.page as number) + 1) * 20;
+		const isLastPageNoMore = total >= pageIncMonitor ? false : true;
+		const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
+		return { total, lastPage: isLastPageNoMore, more: !isLastPageNoMore, summary: regroup, data: result.rows, }
+	}
+	
+	loadJobsBasedOnStatusFromStateOrTown(filter: JobByStatusFromStateOrTown) {
 		return DbModel.Job.findAndCountAll({
 			where: {
 				createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] },
@@ -128,15 +176,11 @@ export class JobModel {
 					model: DbModel.Location, as: 'location', required: true, where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id }
 				}
 			},
-			group: ['status']
-		}).then(result => {
-			const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
-			const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
-			return { total, data: regroup }
+			limit: filter.page ? 20 : null,
+			offset: filter.page ? 20 * (filter.page - 1) : null,
+			group: [filter.grouped_by]
 		})
 	}
-
-
 
 
 

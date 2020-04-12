@@ -24,7 +24,7 @@ export class SearchModel {
 		}
 	}
 
-	async create(next, newSearchHistory: NewSearchHistory): Promise<SearchHistory> {
+	async create(next, newSearchHistory: NewSearchHistory) {
 		const [history, created] = await DbModel.SearchHistory.findOrCreate({
 			where: {
 				[Op.and]: [
@@ -34,8 +34,8 @@ export class SearchModel {
 			},
 			defaults: newSearchHistory
 		});
-		if (created) return await this.getOne(next, history.id)
-		return history
+		// if (created) return await this.getOne(next, history.id)
+		// return history
 	}
 
 	async getOne(next, id: number): Promise<SearchHistory> {
@@ -71,7 +71,7 @@ export class SearchModel {
 		return arr;
 	}
 
-	async workerWithjobsTitle(filter: SearchWorkerFromStateTown) {
+	async workerWithjobsTitle(filter: SearchWorkerFromStateTown, my_id) {
 		const searchKeys = await this.convertTitle(filter.job);
 		const filterArg = await this.formatIntoQueryArray(searchKeys)
 		return DbModel.Worker.findAll({
@@ -84,7 +84,7 @@ export class SearchModel {
 			attributes: ['name', 'logo', 'job', 'agent_id'],
 			include: [
 				{
-					model: DbModel.Agent, as: 'agent', attributes: ['phone'], required: true, include: [
+					model: DbModel.Agent, as: 'agent', attributes: ['phone'], where: { id: {[Op.ne]: my_id} }, required: true, include: [
 						{
 							model: DbModel.Location, as: 'location', required: true,
 							where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id },

@@ -63,20 +63,28 @@ export class Validator {
 		user_id: Joi.number().required(),
 		page: Joi.number().required(),
 	});
+
+	// ? CHART AND ADMIN ENDPOINTS
 	jobsByStatusFrom = Joi.object({
 		state_or_town: Joi.alternatives(['state', 'town']).required(),
 		state_or_town_id: Joi.number().required(),
 		start_range: Joi.date(),
-		end_range: Joi.date()
+		end_range: Joi.date(),
+		grouped_by: Joi.alternatives(['status', 'createdAt']),
+		page: Joi.number().min(1)
 	});
 
 	jobWithTitleByStatusFrom = Joi.object({
 		state_or_town: Joi.alternatives(['state', 'town']).required(),
 		state_or_town_id: Joi.number().required(),
 		title: Joi.string().required(),
+		grouped_by: Joi.alternatives(['status', 'createdAt']),
 		start_range: Joi.date(),
-		end_range: Joi.date()
+		end_range: Joi.date(),
+		page: Joi.number().min(1)
 	});
+
+	// ? USERS WHO SEARCH FOR WORKERS BASED ON SKILLS
 	availableWorkerWithjobsTitle = Joi.object({
 		state_or_town: Joi.alternatives(['state', 'town']).required(),
 		state_or_town_id: Joi.number().required(),
@@ -85,10 +93,6 @@ export class Validator {
 		my_long: Joi.string().required()
 	});
 
-
-	newSearchHistory = Joi.object({
-		key: Joi.string().max(30).required(),
-	});
 
 	states = Joi.object().keys({
 		name: Joi.string().max(30).required()
@@ -178,6 +182,11 @@ export class Validator {
 		// source: Joi.alternatives(['app', 'web']).required()
 	})
 
+	
+	// ? LOAD MORE - ADMIN WANTS TO SEE ALL JOBS/AGENTS SO FAR
+	allLoadMore = Joi.object({
+		page: Joi.number().required(),
+	})
 
 
 	validateEmail(email): boolean {

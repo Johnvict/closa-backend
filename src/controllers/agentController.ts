@@ -5,9 +5,17 @@ export class AgentController {
 
 	// For a super admin who wants to see all registered user
 	async allAgents(req, res, next) {
-		res.status(200).json({
+		const agents = await agentModel.getAll(next)
+		return res.status(200).json({
 			status: 1,
-			data: await agentModel.getAll(next)
+			...agents
+		})
+	}
+	async allAgentsMore(req, res, next) {
+		const agents = await agentModel.getAllMore(req.body.page)
+		return res.status(200).json({
+			status: 1,
+			...agents
 		})
 	}
 
@@ -19,9 +27,9 @@ export class AgentController {
 		})
 	}
 
+
 	async update(req, res, next) {
-		const id = req.agent.id;
-		console.table(req.agent)
+		const id = req.agent.id;		// ? Do not worry, newAgentMiddleware added the agent->id already
 		const isToken = req.body.token;
 		agentModel.update(next, { ...req.body }, isToken, id).then(response => {
 			if (response) return res.status(200).json({ status: 1, data: response })
@@ -47,13 +55,13 @@ export class AgentController {
 					token: auth.generateToken(userData.id, userData.phone, userData.type, otherid),
 					data: userData
 				})
-				return this.upDateLoginTime(userData.id, next);
+				return this.upDateLoginTime(userData.id, userData.phone, next);
 			}
 		}
 	}
 
-	upDateLoginTime(id, next) {
-		agentModel.update(next, { active: true, lastLoginAt: Date.now() }, id);
+	upDateLoginTime(id, phone, next) {
+		agentModel.update(next, { active: true, lastLoginAt: Date.now(), phone: phone }, null, id);
 	}
 
 	async changePassword(req: any, res, next) {

@@ -20,11 +20,11 @@ export class AgentModel {
 
 		{ model: DbModel.Job, as: 'worker_jobs', limit: 10, order: [['updatedAt', 'DESC']], include: [this.getUserWorkerRelation('user'), this.getUserWorkerRelation('worker')] },
 		{ model: DbModel.Job, as: 'user_jobs', limit: 10, order: [['updatedAt', 'DESC']], include: [this.getUserWorkerRelation('user'), this.getUserWorkerRelation('worker')] },
-		{ model: DbModel.SearchHistory, as: 'search_histories' },
+		{ model: DbModel.SearchHistory, as: 'search_histories', attributes: ['key'], order: [['updatedAt', 'DESC']] },
 		{
 			model: DbModel.Location, as: 'location', include: [
-				{ model: DbModel.State, as: 'state' },
-				{ model: DbModel.Town, as: 'town' }
+				{ model: DbModel.State, as: 'state', attributes: ['name', 'id'] },
+				{ model: DbModel.Town, as: 'town', attributes: ['name', 'id', 'state_id'] }
 			]
 		},
 	];
@@ -50,12 +50,9 @@ export class AgentModel {
 			where: { [Op.or]: [{ phone: newAgent.phone }] },
 			defaults: newAgent
 		}).then(async (queryRes) => {
-			if (queryRes[1]) {
-				const token: NewToken = await this.generateToken(queryRes[0].id)
-				tokenModel.create(next, token)
-				return await { ...token, ...this.getOne(next, queryRes[0].id) }
-			}
-			next(new AppError('account already exists', 400, -1))
+			const token: NewToken = await this.generateToken(queryRes[0].id)
+			tokenModel.create(next, token)
+			return await { ...this.getOne(next, queryRes[0].id) }
 		}).catch(e => console.log(e));
 	}
 
@@ -87,8 +84,23 @@ export class AgentModel {
 	}
 
 	async getAll(next): Promise<Agent[]> {
-		const users = await DbModel.Agent.findAll({ include: this.agentRelations })
-		return users ? users : next(new AppError('no user found', 400, -1))
+		return DbModel.Agent.findAndCountAll({ order: [['updatedAt', 'DESC']], limit: 20, include: this.agentRelations }).then( result => {
+			const isLastPageNoMore = result.count >= 20 ? false : true;
+			return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
+		});
+	}
+
+	async getAllMore(page): Promise<{ data: Agent[], total: number, lastPage: boolean }> {
+		return DbModel.Agent.findAndCountAll({
+			order: [['updatedAt', 'DESC']],
+			limit: 20,
+			offset: 20 * page,
+			include: this.agentRelations
+		}).then(result => {
+			const pageIncMonitor = (page + 2) * 20;
+			const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
+			return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
+		})
 	}
 
 	async findOneWithFilter(next, filterArgs: GenericObject, message?): Promise<Agent> {
@@ -97,22 +109,14 @@ export class AgentModel {
 		return await this.getOne(next, agent.id);
 	}
 
-	async whatToUpdate(next, agent, isToken, id): Promise<GenericObject> {
+	async whatToUpdate(next, agent, id): Promise<GenericObject> {
 		const newData = {}
 		try {
 			for (let key in agent) {
 				if (key == 'password') agent[key] = auth.hashPassword(agent[key]);
 				newData[key] = agent[key]
-				if (!isToken) {
-					if (key == 'email') {
-						if (await this.checkDuplicate(next, (agent.email as string), key, (agent.phone as string))) return this.reportDuplicate(next, key)
-					}
-					if (key == 'phone') {
-						if (await this.checkDuplicate(next, (agent.phone as string), key, (agent.phone as string), id)) return this.reportDuplicate(next, key)
-					}
-					if (key == 'username') {
-						if (await this.checkDuplicate(next, (agent.username as string).toLowerCase(), key, (agent.phone as string))) return this.reportDuplicate(next, key)
-					}
+				if (key == 'email' || key == 'phone' || key == 'username') {
+					if (await this.checkDuplicate((agent[key] as string), key, id)) return this.reportDuplicate(next, key)
 				}
 			}
 		} catch (error) {
@@ -121,27 +125,21 @@ export class AgentModel {
 		return newData
 	}
 
-	// return DbModel.Worker.findOrUpdate({
-	// 	where: {[Op.or]: [{phone}, {email}, {username}]},
-	// 	defaults: { ...dataToStore }
-	// })
-
-	async checkDuplicate(next, value: string, key: string, phone: string, id?): Promise<boolean> {
-		let exist = false;
-		const agent = await DbModel.Agent.findOne({ where: { [key]: value } })
-		if (agent) {
-			if (key === 'phone') {
-				if (agent.id !== id && agent.phone == value) exist = true
-			} else {
-				if (agent.phone !== phone) exist = true
-			}
-		}
-		return exist
+	async checkDuplicate(value: string, key: string, id?): Promise<boolean> {
+		const agent = await DbModel.Agent.findOne({ where: { [Op.and]: [{ [key]: value }, { id: {[Op.ne]: id} }] }})
+		return agent ? true : false
 	}
 
+	/**
+	 * 
+	 * @param next 
+	 * @param agent data to update 
+	 * @param isToken in an event where token is provided, for a new agent account
+	 * @param id agent id
+	 */
 	async update(next: any, agent: UpdateAgent, isToken, id?: number, ): Promise<UserStruct | any> {
 		this.duplicateExist = false;
-		const dataToStore = await this.whatToUpdate(next, agent, isToken, (id as number));
+		const dataToStore = await this.whatToUpdate(next, agent, (id as number));
 		if (this.duplicateExist) return
 		let data, exist;
 		const getAgentData = async () => {

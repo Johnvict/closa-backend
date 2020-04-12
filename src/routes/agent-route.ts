@@ -8301,6 +8301,9 @@ const validate = validator.validate;
 /* Create new agent phone */
 Router.post('/new', validate(validator.newAccount), (req, res, next) => agentCtrl.create(req, res, next))
 
+/** Resend token */
+Router.post('/new-token', validate(validator.newAccount), (req, res, next) => agentCtrl.create(req, res, next))
+
 /** Continue new account to create agent other data*/
 Router.post('/continue', validate(validator.newAgent), newAgentMiddleware, (req, res, next) => agentCtrl.update(req, res, next))
 

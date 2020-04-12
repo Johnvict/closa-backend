@@ -10,7 +10,12 @@ export class TokenModel {
 			where: { [Op.or]: [{ agent_id: newToken.agent_id }] },
 			defaults: newToken
 		}).then(async (queryRes) => {
-			return queryRes[0]
+			if (!queryRes[1]) {
+				this.update(newToken)
+			}
+			// ! ! ! Send the token to the phone number as text message
+			// ! ! ! Send the token to the phone number as text message
+			// ! ! ! Send the token to the phone number as text message
 		}).catch(e => console.log(e));
 	}
 
@@ -32,10 +37,8 @@ export class TokenModel {
 	}
 	
 	async update(token: NewToken): Promise<Token> {
-		return DbModel.Token.update({ token: token.token }, { returning: true, where: { agent_id: token.agent_id } })
-			.then(async _ => {
-				return await DbModel.Token.findOne({where: {agent_id: token.agent_id }});
-			})
+		return DbModel.Token.update(token, { where: { agent_id: token.agent_id } })
+			.then(async _ => { })
 			.catch(e => console.log(e))
 	}
 }

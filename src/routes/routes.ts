@@ -8,6 +8,7 @@ const WorkerRoutes = require("./worker-route");
 const LocationRoutes = require("./location-route");
 const JobRoutes = require("./job-route");
 const SearchRoutes = require("./search-route");
+const ChartRoutes = require("./chart-route");
 
 Router.get('/', (req, res) => {
 	res.json({ status: 'good', message: 'NeXT! Everything\'s good'});
@@ -21,6 +22,7 @@ Router.use('/worker', WorkerRoutes);
 Router.use('/location', LocationRoutes);
 Router.use('/job', JobRoutes);
 Router.use('/search', SearchRoutes);
+Router.use('/chart', ChartRoutes);
 
 
 

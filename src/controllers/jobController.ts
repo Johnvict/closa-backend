@@ -15,18 +15,34 @@ export class JobController {
 			if (data) return res.status(200).json({status: 1, ...data });
 		}
 	}
-	async jobsByStatusFrom(req, res, next) {
-		const data = await jobModel.jobsStatusFrom(req.body)
+
+	async jobsByStatusFromStateOrTown(req, res, next) {
+		const data = await jobModel.jobsBasedOnStatusFromStateOrTownForChart(req.body)
 		if (data) return res.status(200).json({status: 1, ...data });
 	}
 
-	async jobsStatusWithTitleFrom(req, res, next) {
-		const data = await jobModel.jobsStatusWithTitleFrom(req.body)
+	async jobsByTitleTitleStatusFromStateOrTown(req, res, next) {
+		const data = await jobModel.jobsByTitleAndStatusFromStateOrTownForChart(req.body)
 		if (data) return res.status(200).json({status: 1, ...data });
 	}
-	
-	async getAllJobs(req, res, next) {
+
+	async jobsByStatusFromStateOrTownForAdmin(req, res, next) {
+		const data = await jobModel.jobsBasedOnStatusFromStateOrTownForAdmin(req.body)
+		if (data) return res.status(200).json({status: 1, ...data });
+	}
+
+	async jobsByTitleStatusFromStateOrTownForAdmin(req, res, next) {
+		const data = await jobModel.jobsByTitleAndStatusFromStateOrTownForAdmin(req.body)
+		if (data) return res.status(200).json({status: 1, ...data });
+	}
+
+	async getAllJobsForAdmin(req, res, next) {
 		const data = await jobModel.getAll()
+		if (data) return res.status(200).json({status: 1, ...data });
+	}
+
+	async getAllJobsMoreForAdmin(req, res, next) {
+		const data = await jobModel.getAllMore(req.body.page)
 		if (data) return res.status(200).json({status: 1, ...data });
 	}
 	

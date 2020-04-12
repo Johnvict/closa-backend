@@ -6,11 +6,11 @@ export class SearchController {
 	async create(req, res, next) {
 		const data = await searchModel.create(next,{ ...req.body, agent_id: req.agent.id })
 		console.log(data)
-		if (data) return res.status(201).json({status: 1, data });
+		// if (data) return res.status(201).json({status: 1, data });
 	}
 	
 	async search(req, res, next) {
-		const data = await searchModel.workerWithjobsTitle(req.body)
+		const data = await searchModel.workerWithjobsTitle(req.body, req.agent.id)
 		if (data) return res.status(201).json({status: 1, data });
 	}
 	async searchToArrange(req, res, next) {
@@ -24,7 +24,12 @@ export class SearchController {
 		if (response.error) return res.json(response.error)
 		console.log(response.data);
 		console.log(response.error);
-		return res.status(200).send( await this.sortComputeRating(response.data.data, req.body.my_lat, req.body.my_long))
+		res.status(200).send({
+			status: response.data.status,
+			data: await this.sortComputeRating(response.data.data, req.body.my_lat, req.body.my_long)
+		})
+
+		return searchModel.create(next, { agent_id: req.agent.id, key: req.body.job})
 	}
 
 	sortComputeRating(data, my_lat, my_long) {

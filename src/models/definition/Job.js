@@ -66,7 +66,7 @@ Job.init(
       type: Sequelize.ENUM(["price", "trust", "imcapability", "self"]),
       allowNull: true
     },
-    createdAt: Sequelize.DATE,
+    createdAt: Sequelize.DATEONLY,
     updatedAt: Sequelize.DATE
   },
   {
