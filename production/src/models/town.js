@@ -88,6 +88,9 @@ class TownModel {
     update(next, data) {
         return __awaiter(this, void 0, void 0, function* () {
             const dataToStore = this.whatToUpdate(data);
+            const town = this.getOne(next, data.id);
+            if (!town)
+                return next(new exported_classes_1.AppError('no town data found with this credential', 400, -1));
             return exported_classes_1.DbModel.Town.update(dataToStore, { returning: true, where: { id: data.id } })
                 .then((_) => __awaiter(this, void 0, void 0, function* () {
                 return yield this.getOne(next, data.id);

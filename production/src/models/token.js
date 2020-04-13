@@ -19,7 +19,12 @@ class TokenModel {
                 where: { [Op.or]: [{ agent_id: newToken.agent_id }] },
                 defaults: newToken
             }).then((queryRes) => __awaiter(this, void 0, void 0, function* () {
-                return queryRes[0];
+                if (!queryRes[1]) {
+                    this.update(newToken);
+                }
+                // ! ! ! Send the token to the phone number as text message
+                // ! ! ! Send the token to the phone number as text message
+                // ! ! ! Send the token to the phone number as text message
             })).catch(e => console.log(e));
         });
     }
@@ -45,10 +50,8 @@ class TokenModel {
     }
     update(token) {
         return __awaiter(this, void 0, void 0, function* () {
-            return exported_classes_1.DbModel.Token.update({ token: token.token }, { returning: true, where: { agent_id: token.agent_id } })
-                .then((_) => __awaiter(this, void 0, void 0, function* () {
-                return yield exported_classes_1.DbModel.Token.findOne({ where: { agent_id: token.agent_id } });
-            }))
+            return exported_classes_1.DbModel.Token.update(token, { where: { agent_id: token.agent_id } })
+                .then((_) => __awaiter(this, void 0, void 0, function* () { }))
                 .catch(e => console.log(e));
         });
     }

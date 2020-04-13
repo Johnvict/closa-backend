@@ -65,9 +65,27 @@ class JobModel {
     }
     getAll() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield exported_classes_1.DbModel.Job.findAll({ include: this.jobRelations });
+            return exported_classes_1.DbModel.Job.findAndCountAll({ order: [['updatedAt', 'DESC']], limit: 20, include: this.jobRelations }).then(result => {
+                const isLastPageNoMore = result.count >= 20 ? false : true;
+                return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows };
+            });
         });
     }
+    getAllMore(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sort = filter.sort ? filter.sort : 'desc';
+            return exported_classes_1.DbModel.Job.findAndCountAll({
+                order: [['updatedAt', sort]],
+                limit: 20,
+                offset: 20 * filter.page
+            }).then(result => {
+                const pageIncMonitor = (filter.page + 2) * 20;
+                const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
+                return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows };
+            });
+        });
+    }
+    // ? Load more jobs for a user
     getMore(query) {
         return __awaiter(this, void 0, void 0, function* () {
             return exported_classes_1.DbModel.Job.findAndCountAll({
@@ -78,7 +96,7 @@ class JobModel {
                         { status: { [Op.ne]: 'cancelled' } }
                     ]
                 },
-                order: [['updatedAt', 'DESC']],
+                order: [['updatedAt', 'desc']],
                 limit: 10,
                 offset: 10 * query.page
             }).then(result => {
@@ -88,35 +106,28 @@ class JobModel {
             });
         });
     }
-    formatIntoQueryArray(arr) {
-        return arr.map(str => {
-            str = this.formatStringToFitRegExcape(str);
-            const query = { [Op.regexp]: `.*${str}.*` };
-            return query;
+    jobsByTitleAndStatusFromStateOrTownForAdmin(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.loadJobsByTitleAndStatusFromStateOrTown(filter);
+            const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0);
+            const pageIncMonitor = (filter.page + 1) * 20;
+            const isLastPageNoMore = total >= pageIncMonitor ? false : true;
+            const regroup = result.count.map(el => (Object.assign(Object.assign({}, el), { percent: (el.count / total) * 100 })));
+            return { total, lastPage: isLastPageNoMore, more: !isLastPageNoMore, summary: regroup, data: result.rows, };
         });
     }
-    formatStringToFitRegExcape(theStr) {
-        return theStr.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    }
-    convertTitle(title) {
+    jobsByTitleAndStatusFromStateOrTownForChart(filter) {
         return __awaiter(this, void 0, void 0, function* () {
-            const skips = ["and", "or", "with", "on", "of", "for", "under", "across", "&", "in", "an"];
-            const arr = title.split(' ');
-            yield skips.forEach(el => {
-                const ind = arr.indexOf(el);
-                if (ind >= 0)
-                    arr.splice(ind, 1);
-                const indexOfNull = arr.indexOf("");
-                if (indexOfNull >= 0)
-                    arr.splice(indexOfNull, 1);
-            });
-            return arr;
+            const result = yield this.loadJobsByTitleAndStatusFromStateOrTown(filter);
+            const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0);
+            const regroup = result.count.map(el => (Object.assign(Object.assign({}, el), { percent: (el.count / total) * 100 })));
+            return { total, data: regroup };
         });
     }
-    jobsStatusWithTitleFrom(filter) {
+    loadJobsByTitleAndStatusFromStateOrTown(filter) {
         return __awaiter(this, void 0, void 0, function* () {
-            const searchKeys = yield this.convertTitle(filter.title);
-            const filterArg = yield this.formatIntoQueryArray(searchKeys);
+            const filterArg = exported_classes_1.formatIntoRegExQueryArray(filter.title);
+            const sort = filter.sort ? filter.sort : 'desc';
             return exported_classes_1.DbModel.Job.findAndCountAll({
                 where: {
                     [Op.and]: [
@@ -125,35 +136,56 @@ class JobModel {
                     ]
                 },
                 include: {
-                    model: exported_classes_1.DbModel.Agent, as: 'worker', required: true, include: {
-                        model: exported_classes_1.DbModel.Location, as: 'location', required: true, where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id }
+                    model: exported_classes_1.DbModel.Agent, as: 'worker',
+                    required: filter.state_or_town == 'all' ? false : true,
+                    include: {
+                        model: exported_classes_1.DbModel.Location, as: 'location', required: true,
+                        where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [Op.gt]: 0 } : filter.state_or_town_id }
                     }
                 },
-                group: ['status']
-            }).then(result => {
-                const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0);
-                const regroup = result.count.map(el => (Object.assign(Object.assign({}, el), { percent: (el.count / total) * 100 })));
-                return { total, data: regroup };
+                order: [['updatedAt', sort]],
+                limit: filter.page ? 20 : null,
+                offset: filter.page ? 20 * (filter.page - 1) : null,
+                group: [filter.grouped_by]
             });
         });
     }
-    jobsStatusFrom(filter) {
+    jobsBasedOnStatusFromStateOrTownForChart(filter) {
         return __awaiter(this, void 0, void 0, function* () {
-            return exported_classes_1.DbModel.Job.findAndCountAll({
-                where: {
-                    createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] },
-                },
+            const result = yield this.loadJobsBasedOnStatusFromStateOrTown(filter);
+            const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0);
+            const regroup = result.count.map(el => (Object.assign(Object.assign({}, el), { percent: (el.count / total) * 100 })));
+            return { total, data: regroup };
+        });
+    }
+    jobsBasedOnStatusFromStateOrTownForAdmin(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.loadJobsBasedOnStatusFromStateOrTown(filter);
+            const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0);
+            const pageIncMonitor = (filter.page + 1) * 20;
+            const isLastPageNoMore = total >= pageIncMonitor ? false : true;
+            const regroup = result.count.map(el => (Object.assign(Object.assign({}, el), { percent: (el.count / total) * 100 })));
+            return { total, lastPage: isLastPageNoMore, more: !isLastPageNoMore, summary: regroup, data: result.rows, };
+        });
+    }
+    loadJobsBasedOnStatusFromStateOrTown(filter) {
+        const sort = filter.sort ? filter.sort : 'desc';
+        return exported_classes_1.DbModel.Job.findAndCountAll({
+            where: {
+                createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] },
+            },
+            include: {
+                model: exported_classes_1.DbModel.Agent, as: 'worker',
+                required: filter.state_or_town == 'all' ? false : true,
                 include: {
-                    model: exported_classes_1.DbModel.Agent, as: 'worker', required: true, include: {
-                        model: exported_classes_1.DbModel.Location, as: 'location', required: true, where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id }
-                    }
-                },
-                group: ['status']
-            }).then(result => {
-                const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0);
-                const regroup = result.count.map(el => (Object.assign(Object.assign({}, el), { percent: (el.count / total) * 100 })));
-                return { total, data: regroup };
-            });
+                    model: exported_classes_1.DbModel.Location, as: 'location', required: true,
+                    where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [Op.gt]: 0 } : filter.state_or_town_id }
+                }
+            },
+            order: [['updatedAt', sort]],
+            limit: filter.page ? 20 : null,
+            offset: filter.page ? 20 * (filter.page - 1) : null,
+            group: [filter.grouped_by]
         });
     }
     delete(next, id) {

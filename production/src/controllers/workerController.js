@@ -22,6 +22,13 @@ class WorkerController {
     }
     createJobSample(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!req.agent.otherid) {
+                const business = yield exported_classes_1.workerModel.findOneWithFilter({ agent_id: req.agent.id });
+                if (business)
+                    req.agent.otherid = business.id;
+                else
+                    return res.status(400).json({ status: -1, message: 'You cannot create job sample without a business profile' });
+            }
             exported_classes_1.jobSampleModel.create(next, Object.assign(Object.assign({}, req.body), { worker_id: req.agent.otherid })).then(response => {
                 if (response) {
                     res.status(201).json({ status: 1, data: response });

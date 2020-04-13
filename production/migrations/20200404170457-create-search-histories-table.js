@@ -19,7 +19,7 @@ module.exports = {
                 type: Sequelize.STRING(30),
                 allowNull: false
             },
-            createdAt: Sequelize.DATE,
+            createdAt: Sequelize.DATEONLY,
             updatedAt: Sequelize.DATE
         });
     },

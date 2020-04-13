@@ -27,11 +27,11 @@ class AgentModel {
             },
             { model: exported_classes_1.DbModel.Job, as: 'worker_jobs', limit: 10, order: [['updatedAt', 'DESC']], include: [this.getUserWorkerRelation('user'), this.getUserWorkerRelation('worker')] },
             { model: exported_classes_1.DbModel.Job, as: 'user_jobs', limit: 10, order: [['updatedAt', 'DESC']], include: [this.getUserWorkerRelation('user'), this.getUserWorkerRelation('worker')] },
-            { model: exported_classes_1.DbModel.SearchHistory, as: 'search_histories' },
+            { model: exported_classes_1.DbModel.SearchHistory, as: 'search_histories', attributes: ['key'], order: [['updatedAt', 'DESC']] },
             {
                 model: exported_classes_1.DbModel.Location, as: 'location', include: [
-                    { model: exported_classes_1.DbModel.State, as: 'state' },
-                    { model: exported_classes_1.DbModel.Town, as: 'town' }
+                    { model: exported_classes_1.DbModel.State, as: 'state', attributes: ['name', 'id'] },
+                    { model: exported_classes_1.DbModel.Town, as: 'town', attributes: ['name', 'id', 'state_id'] }
                 ]
             },
         ];
@@ -56,12 +56,9 @@ class AgentModel {
                 where: { [Op.or]: [{ phone: newAgent.phone }] },
                 defaults: newAgent
             }).then((queryRes) => __awaiter(this, void 0, void 0, function* () {
-                if (queryRes[1]) {
-                    const token = yield this.generateToken(queryRes[0].id);
-                    exported_classes_1.tokenModel.create(next, token);
-                    return yield Object.assign(Object.assign({}, token), this.getOne(next, queryRes[0].id));
-                }
-                next(new exported_classes_1.AppError('account already exists', 400, -1));
+                const token = yield this.generateToken(queryRes[0].id);
+                exported_classes_1.tokenModel.create(next, token);
+                return yield Object.assign({}, this.getOne(next, queryRes[0].id));
             })).catch(e => console.log(e));
         });
     }
@@ -95,8 +92,25 @@ class AgentModel {
     }
     getAll(next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const users = yield exported_classes_1.DbModel.Agent.findAll({ include: this.agentRelations });
-            return users ? users : next(new exported_classes_1.AppError('no user found', 400, -1));
+            return exported_classes_1.DbModel.Agent.findAndCountAll({ order: [['updatedAt', 'DESC']], limit: 20, include: this.agentRelations }).then(result => {
+                const isLastPageNoMore = result.count >= 20 ? false : true;
+                return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows };
+            });
+        });
+    }
+    getAllMore(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sort = filter.sort ? filter.sort : 'desc';
+            return exported_classes_1.DbModel.Agent.findAndCountAll({
+                order: [['updatedAt', sort]],
+                limit: 1,
+                offset: 1 * filter.page,
+                include: this.agentRelations
+            }).then(result => {
+                const pageIncMonitor = (filter.page + 2) * 1;
+                const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
+                return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows };
+            });
         });
     }
     findOneWithFilter(next, filterArgs, message) {
@@ -107,7 +121,7 @@ class AgentModel {
             return yield this.getOne(next, agent.id);
         });
     }
-    whatToUpdate(next, agent, isToken, id) {
+    whatToUpdate(next, agent, id) {
         return __awaiter(this, void 0, void 0, function* () {
             const newData = {};
             try {
@@ -115,19 +129,9 @@ class AgentModel {
                     if (key == 'password')
                         agent[key] = exported_classes_1.auth.hashPassword(agent[key]);
                     newData[key] = agent[key];
-                    if (!isToken) {
-                        if (key == 'email') {
-                            if (yield this.checkDuplicate(next, agent.email, key, agent.phone))
-                                return this.reportDuplicate(next, key);
-                        }
-                        if (key == 'phone') {
-                            if (yield this.checkDuplicate(next, agent.phone, key, agent.phone, id))
-                                return this.reportDuplicate(next, key);
-                        }
-                        if (key == 'username') {
-                            if (yield this.checkDuplicate(next, agent.username.toLowerCase(), key, agent.phone))
-                                return this.reportDuplicate(next, key);
-                        }
+                    if (key == 'email' || key == 'phone' || key == 'username') {
+                        if (yield this.checkDuplicate(agent[key], key, id))
+                            return this.reportDuplicate(next, key);
                     }
                 }
             }
@@ -137,31 +141,23 @@ class AgentModel {
             return newData;
         });
     }
-    // return DbModel.Worker.findOrUpdate({
-    // 	where: {[Op.or]: [{phone}, {email}, {username}]},
-    // 	defaults: { ...dataToStore }
-    // })
-    checkDuplicate(next, value, key, phone, id) {
+    checkDuplicate(value, key, id) {
         return __awaiter(this, void 0, void 0, function* () {
-            let exist = false;
-            const agent = yield exported_classes_1.DbModel.Agent.findOne({ where: { [key]: value } });
-            if (agent) {
-                if (key === 'phone') {
-                    if (agent.id !== id && agent.phone == value)
-                        exist = true;
-                }
-                else {
-                    if (agent.phone !== phone)
-                        exist = true;
-                }
-            }
-            return exist;
+            const agent = yield exported_classes_1.DbModel.Agent.findOne({ where: { [Op.and]: [{ [key]: value }, { id: { [Op.ne]: id } }] } });
+            return agent ? true : false;
         });
     }
+    /**
+     *
+     * @param next
+     * @param agent data to update
+     * @param isToken in an event where token is provided, for a new agent account
+     * @param id agent id
+     */
     update(next, agent, isToken, id) {
         return __awaiter(this, void 0, void 0, function* () {
             this.duplicateExist = false;
-            const dataToStore = yield this.whatToUpdate(next, agent, isToken, id);
+            const dataToStore = yield this.whatToUpdate(next, agent, id);
             if (this.duplicateExist)
                 return;
             let data, exist;

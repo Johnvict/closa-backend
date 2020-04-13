@@ -21,6 +21,34 @@ class Validator {
             gender: Joi.alternatives(['male', 'female']),
             type: Joi.alternatives(['user', 'worker'])
         });
+        this.newAdmin = Joi.object({
+            password: Joi.string().min(5).max(200).required(),
+            phone: Joi.string().min(11).max(15).required(),
+            username: Joi.string().min(3).max(25).required(),
+            email: Joi.string().email().max(25).required(),
+            dob: Joi.date().required(),
+            gender: Joi.alternatives(['male', 'female']).required(),
+            type: Joi.alternatives(['admin', 'super']).required()
+        });
+        this.updateAdminSuper = Joi.object({
+            id: Joi.number().required(),
+            password: Joi.string().min(5).max(200),
+            phone: Joi.string().min(11).max(15),
+            username: Joi.string().min(3).max(25),
+            email: Joi.string().email().max(25),
+            dob: Joi.date(),
+            gender: Joi.alternatives(['male', 'female']),
+            type: Joi.alternatives(['admin', 'super'])
+        });
+        this.updateAdmin = Joi.object({
+            password: Joi.string().min(5).max(200),
+            phone: Joi.string().min(11).max(15),
+            username: Joi.string().min(3).max(25),
+            email: Joi.string().email().max(25),
+            dob: Joi.date(),
+            gender: Joi.alternatives(['male', 'female']),
+            type: Joi.alternatives(['admin', 'super'])
+        });
         // if type is link, link will be provided, else null
         // if type is not link, link will be saved as null then updated on file upload
         this.newJobSample = Joi.object({
@@ -56,30 +84,44 @@ class Validator {
         this.loadMoreJobs = Joi.object({
             worker_id: Joi.number().required(),
             user_id: Joi.number().required(),
-            page: Joi.number().required(),
+            page: Joi.number().required(0),
         });
+        // ? CHART AND ADMIN ENDPOINTS
         this.jobsByStatusFrom = Joi.object({
-            state_or_town: Joi.alternatives(['state', 'town']).required(),
+            state_or_town: Joi.alternatives(['state', 'town', 'all']).required(),
             state_or_town_id: Joi.number().required(),
             start_range: Joi.date(),
-            end_range: Joi.date()
+            end_range: Joi.date(),
+            grouped_by: Joi.alternatives(['status', 'createdAt']),
+            sort: Joi.alternatives(['asc', 'desc']),
+            page: Joi.number().min(0)
         });
         this.jobWithTitleByStatusFrom = Joi.object({
-            state_or_town: Joi.alternatives(['state', 'town']).required(),
+            state_or_town: Joi.alternatives(['state', 'town', 'all']).required(),
             state_or_town_id: Joi.number().required(),
             title: Joi.string().required(),
+            grouped_by: Joi.alternatives(['status', 'createdAt']),
             start_range: Joi.date(),
-            end_range: Joi.date()
+            end_range: Joi.date(),
+            sort: Joi.alternatives(['asc', 'desc']),
+            page: Joi.number().min(0)
         });
+        this.searchHistoryByKey = Joi.object({
+            key: Joi.string().required(),
+            state_or_town: Joi.alternatives(['state', 'town', 'all']).required(),
+            state_or_town_id: Joi.number().required(),
+            start_range: Joi.date(),
+            end_range: Joi.date(),
+            sort: Joi.alternatives(['asc', 'desc']),
+            page: Joi.number().min(0)
+        });
+        // ? USERS WHO SEARCH FOR WORKERS BASED ON SKILLS
         this.availableWorkerWithjobsTitle = Joi.object({
             state_or_town: Joi.alternatives(['state', 'town']).required(),
             state_or_town_id: Joi.number().required(),
             job: Joi.string().required(),
             my_lat: Joi.string().required(),
             my_long: Joi.string().required()
-        });
-        this.newSearchHistory = Joi.object({
-            key: Joi.string().max(30).required(),
         });
         this.states = Joi.object().keys({
             name: Joi.string().max(30).required()
@@ -96,10 +138,11 @@ class Validator {
             name: Joi.string().max(30).required(),
         });
         this.updateState = Joi.object({
+            id: Joi.number().min(1).required(),
             name: Joi.string().max(30),
         });
         this.deleteWithId = Joi.object({
-            id: Joi.number(),
+            id: Joi.number().min(1).required(),
         });
         this.newTown = Joi.object({
             state_id: Joi.number().required(),
@@ -108,6 +151,7 @@ class Validator {
             long: Joi.string().required()
         });
         this.updateTown = Joi.object({
+            id: Joi.number().min(1).required(),
             state_id: Joi.number(),
             name: Joi.string().max(30),
             lat: Joi.string(),
@@ -157,6 +201,15 @@ class Validator {
         this.loginData = Joi.object({
             password: Joi.string().max(50).required(),
             phone: Joi.string().max(15).required(),
+        });
+        this.adminloginData = Joi.object({
+            password: Joi.string().max(50).required(),
+            username: Joi.string().max(15).required(),
+        });
+        // ? LOAD MORE - ADMIN WANTS TO SEE ALL JOBS/AGENTS SO FAR
+        this.allLoadMore = Joi.object({
+            page: Joi.number().required(0),
+            sort: Joi.alternatives(['asc', 'desc']),
         });
     }
     validateEmail(email) {

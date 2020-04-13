@@ -90,14 +90,15 @@ export class AgentModel {
 		});
 	}
 
-	async getAllMore(page): Promise<{ data: Agent[], total: number, lastPage: boolean }> {
+	async getAllMore(filter: {page: number, sort: 'desc' | 'asc'}): Promise<{ data: Agent[], total: number, lastPage: boolean }> {
+		const sort = filter.sort ? filter.sort : 'desc';
 		return DbModel.Agent.findAndCountAll({
-			order: [['updatedAt', 'DESC']],
-			limit: 20,
-			offset: 20 * page,
+			order: [['updatedAt', sort]],
+			limit: 1,
+			offset: 1 * filter.page,
 			include: this.agentRelations
 		}).then(result => {
-			const pageIncMonitor = (page + 2) * 20;
+			const pageIncMonitor = (filter.page + 2) * 1;
 			const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
 			return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
 		})

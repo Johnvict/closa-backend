@@ -83,7 +83,26 @@ exports.adminMiddleware = (req, res, next) => {
     try {
         const tokenDecoded = JWT.verify(token, jwtSecret);
         console.table(tokenDecoded);
-        if (tokenDecoded.type === 'admin') {
+        if (tokenDecoded.type === 'admin' || tokenDecoded.type === 'super') {
+            req.admin = tokenDecoded;
+            next();
+        }
+        else {
+            return res.status(401).json({ message: 'Access denied. You cannot access this endpoint', status: -1 });
+        }
+    }
+    catch (err) {
+        return res.status(401).json({ message: 'Invalid token.', status: -1 });
+    }
+};
+exports.superAdminMiddleware = (req, res, next) => {
+    const token = req.header('authorization');
+    if (!token)
+        return res.status(401).json({ message: 'Access denied. Authorization Token not provided.', status: -1 });
+    try {
+        const tokenDecoded = JWT.verify(token, jwtSecret);
+        console.table(tokenDecoded);
+        if (tokenDecoded.type === 'super') {
             req.admin = tokenDecoded;
             next();
         }

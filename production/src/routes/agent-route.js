@@ -8301,6 +8301,8 @@ const states = [
 const validate = exported_classes_1.validator.validate;
 /* Create new agent phone */
 Router.post('/new', validate(exported_classes_1.validator.newAccount), (req, res, next) => exported_classes_1.agentCtrl.create(req, res, next));
+/** Resend token */
+Router.post('/new-token', validate(exported_classes_1.validator.newAccount), (req, res, next) => exported_classes_1.agentCtrl.create(req, res, next));
 /** Continue new account to create agent other data*/
 Router.post('/continue', validate(exported_classes_1.validator.newAgent), auth_middleware_1.newAgentMiddleware, (req, res, next) => exported_classes_1.agentCtrl.update(req, res, next));
 /* Update agent */

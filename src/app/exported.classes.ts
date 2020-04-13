@@ -9,6 +9,7 @@ import { UserController } from './../controllers/userController'
 import { WorkerController } from './../controllers/workerController'
 import { SearchController } from './../controllers/searchController'
 
+import { AdminModel } from "./../models/admin";
 import { UserModel } from "./../models/user";
 import { AgentModel } from "./../models/agent";
 import { WorkerModel } from "./../models/worker";
@@ -23,7 +24,7 @@ import { Authorization } from './../middleware/authorization'
 import { Validator } from './../middleware/validator'
 import { AppError as appError } from './../misc/app.error'
 import { makeAPICall } from './../misc/api-caller'
-import { convertToDistance } from './../misc/helper-functions'
+import { HelperFunctions } from './../misc/helper-functions'
 export const AppError = appError; 
 export const catchAsync = require('./../misc/catchAsync');
 
@@ -42,7 +43,8 @@ export const DbModel = {
 	SearchHistory: require('./../models/definition/SearchHistory'),
 	User: require('./../models/definition/User'),
 	Worker: require('./../models/definition/Worker'),
-	Token: require('./../models/definition/Token')
+	Token: require('./../models/definition/Token'),
+	Admin: require('./../models/definition/Admin')
 };
 
 export const sequelize = require('./connection')
@@ -60,6 +62,7 @@ export const jobCtrl = new JobController();
 export const searchCtrl = new SearchController();
 /**
  * ! Model import for exports */
+export const adminModel = new AdminModel();
 export const agentModel = new AgentModel();
 export const userModel = new UserModel();
 export const workerModel = new WorkerModel();
@@ -80,4 +83,7 @@ export const validator = new Validator();
  * ! Standalone methods */
 export const formatError = validator.formatError;
 export const apiCaller = makeAPICall;
-export const distanceCalculator = convertToDistance;
+
+const helperFunctions = new HelperFunctions()
+export const distanceCalculator = helperFunctions.convertToDistance;
+export const formatIntoRegExQueryArray = helperFunctions.formatIntoRegExQueryArray;

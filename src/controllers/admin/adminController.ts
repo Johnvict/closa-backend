@@ -1,7 +1,105 @@
-import { NewUpdateState, NewUpdateTown } from './../../misc/structs';
-import { stateModel, townModel } from './../../app/exported.classes'
+import { NewUpdateState, NewUpdateTown, LoginStruct } from './../../misc/structs';
+import { stateModel, townModel, adminModel, agentModel, AppError, auth } from './../../app/exported.classes'
+import { request } from 'http';
 
 export class AdminController {
+
+
+	async allAdmins(req, res, next) {
+		if (this.isThisAdminAllowed(req, res, next, 'access')) {
+			const admins = await adminModel.getAll()
+			return res.status(200).json({
+				status: 1,
+				data: admins
+			})
+		}
+	}
+
+	async create(req, res, next) {
+		if (this.isThisAdminAllowed(req, res, next, 'create')) {
+			return res.status(201).json({
+				status: 1,
+				data: await adminModel.create(next, req.body)
+			})
+		}
+	}
+
+
+	async update(req, res, next) {
+		req.body.id = req.admin.id
+		if (this.isThisAdminAllowed(req, res, next, 'update')) {
+			adminModel.update(next, { ...req.body }).then(response => {
+				if (response) return res.status(200).json({ status: 1, data: response })
+			})
+		}
+	}
+	async updateSuper(req, res, next) {
+		if (this.isThisAdminAllowed(req, res, next, 'update')) {
+			adminModel.update(next, { ...req.body }).then(response => {
+				if (response) return res.status(200).json({ status: 1, data: response })
+			})
+		}
+	}
+
+	async delete(req, res, next) {
+		if (this.isThisAdminAllowed(req, res, next, 'delete')) {
+			adminModel.update(next, req.body).then( data => {
+				if (data) {
+					return res.status(200).json({
+						status: 1,
+						data
+					})
+				}
+			})
+		}
+	}
+
+	async login(req, res, next) {
+		const loginData = req.body;
+		const adminData = await adminModel.findOneWithFilter(next, { username: loginData.username })
+		if (!adminData) return res.status(401).json({ status: -1, message: 'invalid credentials'})
+		if (adminData) {
+			if (await auth.comparePassword(next, { candidatePassword: loginData.password, hashedPassword: adminData.password })) {
+				res.status(200).json({
+					status: 1,
+					token: auth.generateToken(adminData.id, adminData.phone, adminData.type, 10),
+					data: adminData
+				})
+				return this.upDateLoginTime(next, adminData.id);
+			}
+		}
+	}
+
+	upDateLoginTime(next, id) {
+		adminModel.update(next, {lastLoginAt: new Date(Date.now()), id });
+	}
+
+
+	async changePassword(req: any, res, next) {
+		if (this.isThisAdminAllowed(req, res, next, 'update')) {
+			let { old_password, new_password } = req.body;
+			let adminData = await adminModel.findOneWithFilter(next, { id: req.admin.id })
+			if (!adminData) return res.status(401).json({ status: -1, message: 'invalid credentials'})
+			if (auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: adminData.password })) {
+				adminModel.update(next, { password: new_password, id: adminData.id}).then(response => {
+					console.log(response)
+					if (response) return res.status(200).json({ status: 1, data: response });
+				})
+			}
+		}
+	}
+
+	isThisAdminAllowed(req, res, next, action: 'create' | 'update' | 'delete' | 'access') {
+		const thisLogedInId = req.admin.id;
+		if (action == 'create' || action == 'access') {
+			if (req.admin.type !== 'super') {
+				return next(new AppError(`Access denied, you are not allowed to ${action} this account`, 401, -1));
+			}
+		} else {
+			if(req.body.id !== thisLogedInId && req.admin.type !== 'super') return next(new AppError(`Access denied, you are not allowed to ${action} this account`, 401, -1));
+		}
+		return true
+	}
 
 	async createManyStates(req, res, next) {
 		const states: NewUpdateState[] = req.body;
@@ -33,18 +131,34 @@ export class AdminController {
 
 
 	async updateState(req, res, next) {
-		return res.status(200).json({ status: 1, data: await stateModel.update(next, req.body) })
+		stateModel.update(next, req.body).then( data => {
+			if (data) {
+				return res.status(200).json({ status: 1, data: data })
+			}
+		})
 	}
 	async updateTown(req, res, next) {
-		return res.status(200).json({ status: 1, data: await townModel.update(next, req.body) })
+		townModel.update(next, req.body).then( data => {
+			if (data) {
+				return res.status(200).json({ status: 1, data })
+			}
+		})
 	}
 
 	async deleteState(req, res, next) {
-		return res.status(200).json({ status: 1, data: await stateModel.delete(next, req.body) })
+		stateModel.delete(next, req.body).then( data => {
+			if (data) {
+				return res.status(200).json({ status: 1, data: data })
+			}
+		})
 	}
 
 	async deleteTown(req, res, next) {
-		return res.status(200).json({ status: 1, data: await townModel.delete(next, req.body) })
+		townModel.delete(next, req.body).then( data => {
+			if (data) {
+				return res.status(200).json({ status: 1, data: data })
+			}
+		})
 	}
 
 }

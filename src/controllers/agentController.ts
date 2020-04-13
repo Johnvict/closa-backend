@@ -12,7 +12,7 @@ export class AgentController {
 		})
 	}
 	async allAgentsMore(req, res, next) {
-		const agents = await agentModel.getAllMore(req.body.page)
+		const agents = await agentModel.getAllMore(req.body)
 		return res.status(200).json({
 			status: 1,
 			...agents

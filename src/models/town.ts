@@ -71,6 +71,8 @@ export class TownModel {
 
 	async update(next, data: NewUpdateTown): Promise<Town> {
 		const dataToStore = this.whatToUpdate(data);
+		const town = this.getOne(next, (data.id as number))
+		if (!town) return next(new AppError('no town data found with this credential', 400, -1))
 		return DbModel.Town.update(dataToStore, { returning: true, where: { id: data.id } })
 			.then(async _ => {
 				return await this.getOne(next, (data.id as number));

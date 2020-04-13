@@ -1,5 +1,5 @@
 import { GenericObject, Job, NewJob, UpdateJob, JobByStatusFromStateOrTown } from './../misc/structs';
-import { DbModel, AppError } from './../app/exported.classes';
+import { DbModel, AppError, formatIntoRegExQueryArray } from './../app/exported.classes';
 
 import * as sequelize from 'sequelize'
 const Op = sequelize.Op;
@@ -53,13 +53,14 @@ export class JobModel {
 			return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
 		});
 	}
-	async getAllMore(page): Promise<{ data: Job[], total: number, lastPage: boolean }> {
+	async getAllMore(filter: {page: number, sort: 'descending' | 'ascending'}): Promise<{ data: Job[], total: number, lastPage: boolean }> {
+		const sort = filter.sort ? filter.sort : 'desc';
 		return DbModel.Job.findAndCountAll({
-			order: [['updatedAt', 'DESC']],
+			order: [['updatedAt', sort]],
 			limit: 20,
-			offset: 20 * page
+			offset: 20 * filter.page
 		}).then(result => {
-			const pageIncMonitor = (page + 2) * 20;
+			const pageIncMonitor = (filter.page + 2) * 20;
 			const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
 			return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
 		})
@@ -75,7 +76,7 @@ export class JobModel {
 					{ status: { [Op.ne]: 'cancelled' } }
 				]
 			},
-			order: [['updatedAt', 'DESC']],
+			order: [['updatedAt', 'desc']],
 			limit: 10,
 			offset: 10 * query.page
 		}).then(result => {
@@ -83,31 +84,6 @@ export class JobModel {
 			const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
 			return { data: result.rows, total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore }
 		})
-	}
-
-	formatIntoQueryArray(arr: string[]) {
-		return arr.map(str => {
-			str = this.formatStringToFitRegExcape(str);
-			const query = { [Op.regexp]: `.*${str}.*` }
-			return query
-		})
-	}
-
-	formatStringToFitRegExcape(theStr) {
-		return theStr.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-	}
-
-	async convertTitle(title) {
-		const skips = ["and", "or", "with", "on", "of", "for", "under", "across", "&", "in", "an"]
-		const arr: string[] = title.split(' ')
-		await skips.forEach(el => {
-			const ind = arr.indexOf(el)
-			if (ind >= 0) arr.splice(ind, 1)
-			const indexOfNull = arr.indexOf("")
-			if (indexOfNull >= 0) arr.splice(indexOfNull, 1)
-		});
-
-		return arr;
 	}
 
 	async jobsByTitleAndStatusFromStateOrTownForAdmin(filter: JobByStatusFromStateOrTown) {
@@ -128,8 +104,8 @@ export class JobModel {
 	}
 
 	async loadJobsByTitleAndStatusFromStateOrTown(filter: JobByStatusFromStateOrTown) {
-		const searchKeys = await this.convertTitle(filter.title);
-		const filterArg = await this.formatIntoQueryArray(searchKeys)
+		const filterArg = formatIntoRegExQueryArray(filter.title)
+		const sort = filter.sort ? filter.sort : 'desc';
 		return DbModel.Job.findAndCountAll({
 			where: {
 				[Op.and]: [
@@ -138,10 +114,14 @@ export class JobModel {
 				] 
 			},
 			include: {
-				model: DbModel.Agent, as: 'worker', required: true, include: {
-					model: DbModel.Location, as: 'location', required: true, where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id }
+				model: DbModel.Agent, as: 'worker',
+				required: filter.state_or_town == 'all' ? false : true,
+				include: {
+					model: DbModel.Location, as: 'location', required: true,
+					where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [Op.gt]: 0 } : filter.state_or_town_id }
 				}
 			},
+			order: [['updatedAt', sort]],
 			limit: filter.page ? 20 : null,
 			offset: filter.page ? 20 * (filter.page - 1) : null,
 			group: [filter.grouped_by]
@@ -167,15 +147,20 @@ export class JobModel {
 	}
 	
 	loadJobsBasedOnStatusFromStateOrTown(filter: JobByStatusFromStateOrTown) {
+		const sort = filter.sort ? filter.sort : 'desc';
 		return DbModel.Job.findAndCountAll({
-			where: {
+		where: {
 				createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] },
 			},
 			include: {
-				model: DbModel.Agent, as: 'worker', required: true, include: {
-					model: DbModel.Location, as: 'location', required: true, where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id }
+				model: DbModel.Agent, as: 'worker',
+				required: filter.state_or_town == 'all' ? false : true,
+				include: {
+					model: DbModel.Location, as: 'location', required: true,
+					where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [Op.gt]: 0 } : filter.state_or_town_id }
 				}
 			},
+			order: [['updatedAt', sort]],
 			limit: filter.page ? 20 : null,
 			offset: filter.page ? 20 * (filter.page - 1) : null,
 			group: [filter.grouped_by]

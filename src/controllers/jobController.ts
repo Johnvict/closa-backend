@@ -42,7 +42,7 @@ export class JobController {
 	}
 
 	async getAllJobsMoreForAdmin(req, res, next) {
-		const data = await jobModel.getAllMore(req.body.page)
+		const data = await jobModel.getAllMore(req.body)
 		if (data) return res.status(200).json({status: 1, ...data });
 	}
 	

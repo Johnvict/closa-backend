@@ -47,9 +47,6 @@ class SearchModel {
                 },
                 defaults: newSearchHistory
             });
-            if (created)
-                return yield this.getOne(next, history.id);
-            return history;
         });
     }
     getOne(next, id) {
@@ -57,63 +54,128 @@ class SearchModel {
             return yield exported_classes_1.DbModel.Job.findByPk(id);
         });
     }
-    formatIntoQueryArray(arr) {
-        return arr.map(str => {
-            str = this.formatStringToFitRegExcape(str);
-            const query = { [Op.regexp]: `.*${str}.*` };
-            return query;
-        });
-    }
-    sortByDistance() { }
-    formatStringToFitRegExcape(theStr) {
-        return theStr.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    }
-    convertTitle(title) {
+    searchesWithKeyWord(filter, my_id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const skips = ["and", "or", "with", "on", "of", "for", "under", "across", "&", "in", "an"];
-            const arr = title.split(' ');
-            yield skips.forEach(el => {
-                const ind = arr.indexOf(el);
-                if (ind >= 0)
-                    arr.splice(ind, 1);
-                const indexOfNull = arr.indexOf("");
-                if (indexOfNull >= 0)
-                    arr.splice(indexOfNull, 1);
-            });
-            return arr;
-        });
-    }
-    workerWithjobsTitle(filter) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const searchKeys = yield this.convertTitle(filter.job);
-            const filterArg = yield this.formatIntoQueryArray(searchKeys);
-            return exported_classes_1.DbModel.Worker.findAll({
+            const filterArg = yield exported_classes_1.formatIntoRegExQueryArray(filter.key);
+            return exported_classes_1.DbModel.SearchHistory.findAll({
                 where: {
-                    [Op.and]: [
-                        { status: 'available' },
-                        { job: { [Op.or]: filterArg } }
-                    ]
+                    key: { [Op.or]: filterArg }
                 },
-                attributes: ['name', 'logo', 'job', 'agent_id'],
-                include: [
-                    {
-                        model: exported_classes_1.DbModel.Agent, as: 'agent', attributes: ['phone'], required: true, include: [
-                            {
-                                model: exported_classes_1.DbModel.Location, as: 'location', required: true,
-                                where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id },
-                                attributes: ['name', 'image', 'long', 'lat'],
-                                include: [
-                                    { model: exported_classes_1.DbModel.State, as: 'state', attributes: ['name'] },
-                                    { model: exported_classes_1.DbModel.Town, as: 'town', attributes: ['name'] }
-                                ]
-                            },
-                            { model: exported_classes_1.DbModel.Job, as: 'worker_jobs', where: { status: 'done' }, attributes: ['rating'], }
-                        ]
-                    },
-                ],
+                attributes: ['key'],
             }).then((result) => __awaiter(this, void 0, void 0, function* () {
                 return result;
             }));
+        });
+    }
+    workerWithjobsTitle(filter, my_id) {
+        const filterArg = exported_classes_1.formatIntoRegExQueryArray(filter.job);
+        return exported_classes_1.DbModel.Worker.findAll({
+            where: {
+                [Op.and]: [
+                    { status: 'available' },
+                    { job: { [Op.or]: filterArg } }
+                ]
+            },
+            attributes: ['name', 'logo', 'job', 'agent_id'],
+            include: [
+                {
+                    model: exported_classes_1.DbModel.Agent, as: 'agent', attributes: ['phone'], required: true, include: [
+                        {
+                            model: exported_classes_1.DbModel.Location, as: 'location', required: true,
+                            where: { [Op.and]: [{ [`${filter.state_or_town}_id`]: filter.state_or_town_id }, { id: { [Op.ne]: my_id } }] },
+                            attributes: ['name', 'image', 'long', 'lat'],
+                            include: [
+                                { model: exported_classes_1.DbModel.State, as: 'state', attributes: ['name'] },
+                                { model: exported_classes_1.DbModel.Town, as: 'town', attributes: ['name'] }
+                            ]
+                        },
+                        { model: exported_classes_1.DbModel.Job, as: 'worker_jobs', where: { status: 'done' }, attributes: ['rating'], }
+                    ]
+                },
+            ],
+        }).then(result => {
+            return result;
+        });
+    }
+    getAll() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return exported_classes_1.DbModel.SearchHistory.findAndCountAll({
+                order: [['createdAt', 'desc']], limit: 20,
+                attributes: ['key'],
+                include: {
+                    model: exported_classes_1.DbModel.Agent, as: 'agent',
+                    attributes: ['username', 'email', 'phone', 'id', 'type', 'gender', 'dob']
+                },
+            })
+                .then(result => {
+                const isLastPageNoMore = result.count >= 20 ? false : true;
+                return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows };
+            });
+        });
+    }
+    getAllMore(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sort = filter.sort ? filter.sort : 'desc';
+            return exported_classes_1.DbModel.SearchHistory.findAndCountAll({
+                order: [['createdAt', sort]], limit: 20,
+                attributes: ['key'],
+                offset: 20 * filter.page,
+                include: {
+                    model: exported_classes_1.DbModel.Agent, as: 'agent',
+                    attributes: ['username', 'email', 'phone', 'id', 'type', 'gender', 'dob']
+                },
+            }).then(result => {
+                const pageIncMonitor = (filter.page + 2) * 20;
+                const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
+                return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows };
+            });
+        });
+    }
+    searchHistoryByKeyFromStateOrTownForAdmin(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.loadSearchHistoryFromStateOrTown(filter);
+            const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0);
+            const pageIncMonitor = (filter.page + 1) * 20;
+            const isLastPageNoMore = total >= pageIncMonitor ? false : true;
+            const regroup = result.count.map(el => (Object.assign(Object.assign({}, el), { percent: (el.count / total) * 100 })));
+            return { total, lastPage: isLastPageNoMore, more: !isLastPageNoMore, summary: regroup, data: result.rows, };
+        });
+    }
+    searchHistoryByKeyFromStateOrTownForChart(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.loadSearchHistoryFromStateOrTown(filter);
+            const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0);
+            const regroup = result.count.map(el => (Object.assign(Object.assign({}, el), { percent: (el.count / total) * 100 })));
+            return { total, data: regroup };
+        });
+    }
+    loadSearchHistoryFromStateOrTown(filter) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const filterArg = yield exported_classes_1.formatIntoRegExQueryArray(filter.key);
+            const sort = filter.sort ? filter.sort : 'desc';
+            return exported_classes_1.DbModel.SearchHistory.findAndCountAll({
+                where: {
+                    [Op.and]: [
+                        { createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] } },
+                        { key: { [Op.or]: filterArg } }
+                    ]
+                },
+                include: {
+                    model: exported_classes_1.DbModel.Agent, as: 'agent',
+                    required: filter.state_or_town == 'all' ? false : true,
+                    attributes: ['username', 'email', 'phone', 'id', 'type', 'gender', 'dob'],
+                    include: {
+                        model: exported_classes_1.DbModel.Location, as: 'location',
+                        required: true,
+                        where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [Op.gt]: 0 } : filter.state_or_town_id }
+                    }
+                },
+                attributes: ['key', 'createdAt'],
+                order: [['createdAt', sort]],
+                limit: filter.page ? 20 : null,
+                offset: filter.page ? 20 * (filter.page - 1) : null,
+                group: ['createdAt']
+            });
         });
     }
 }

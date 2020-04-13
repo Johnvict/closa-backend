@@ -13,6 +13,26 @@ export class SearchController {
 		const data = await searchModel.workerWithjobsTitle(req.body, req.agent.id)
 		if (data) return res.status(201).json({status: 1, data });
 	}
+
+	async allSearches(req, res, next) {
+		const searches = await searchModel.getAll();
+		return res.status(201).json({status: 1, ...searches });
+	}
+
+	async allSearchesMore(req, res, next) {
+		const searches = await searchModel.getAllMore(req.body);
+		if (searches) return res.status(201).json({status: 1, ...searches });
+	}
+	
+	async searchesForChart(req, res, next) {
+		const data =await searchModel.searchHistoryByKeyFromStateOrTownForChart(req.body);
+		if (data) return res.status(201).json({status: 1, ...data });
+	}
+	async searchesForAdmin(req, res, next) {
+		const data =await searchModel.searchHistoryByKeyFromStateOrTownForAdmin(req.body);
+		if (data) return res.status(201).json({status: 1, ...data });
+	}
+
 	async searchToArrange(req, res, next) {
 		const request: RequestOption = {
 			method: 'POST',

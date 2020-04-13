@@ -12,6 +12,35 @@ export interface NewAgent {
 	phone: string;
 	type: 'user' | 'worker';
 }
+export interface NewAdmin {
+	password: string;
+	phone: string;
+	username: string;
+	email: string;
+	dob: string;
+	gender: string;
+	type: 'user' | 'worker';
+}
+export interface UpdateAdmin {
+	id: number;
+	password?: string;
+	phone?: string;
+	username?: string;
+	email?: string;
+	dob?: string;
+	gender?: string;
+	lastLoginAt?: Date;
+	type?: 'user' | 'worker';
+}
+export interface Admin extends Regular {
+	password: string;
+	phone: string;
+	username: string;
+	email: string;
+	dob: string;
+	gender: string;
+	type: 'user' | 'worker';
+}
 export interface NewToken {
 	agent_id: number;
 	token: string;
@@ -32,8 +61,6 @@ export interface UpdateAgent {
 	dob?: Date | string | number;
 	gender?: 'male' | 'female';
 	lastLoginAt?: Date | string | number;
-	// web?: boolean;
-	// app?: boolean;
 }
 
 export interface Agent extends Regular {
@@ -116,6 +143,17 @@ export interface SearchWorkerFromStateTown {
 	state_or_town_id: number;
 	my_lat: number;
 	my_long: number;
+}
+
+export interface SearchHistoryFromStateTown {
+	key: string;
+	sort: 'asc' | 'desc';
+	state_or_town: 'state' | 'town' | 'all';
+	state_or_town_id: number;
+	start_range: Date | string;
+	end_range: Date | string;
+	grouped_by: string;
+	page?: number
 }
 
 export interface NewLocation {
@@ -217,11 +255,12 @@ export interface Job extends Regular {
 
 export interface JobByStatusFromStateOrTown {
 	title: string;
-	state_or_town: 'state' | 'town';
+	state_or_town: 'state' | 'town' | 'all';
 	state_or_town_id: number;
 	start_range: Date | string;
 	end_range: Date | string;
 	grouped_by: string;
+	sort: 'asc' | 'desc';
 	page?: number
 }
 

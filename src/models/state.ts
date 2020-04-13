@@ -66,6 +66,8 @@ export class StateModel {
 
 	async update(next, data: NewUpdateState): Promise<State> {
 		const dataToStore = this.whatToUpdate(data);
+		const state = this.getOne(next, data.id)
+		if (!state) return next(new AppError('no state data found with this credential', 400, -1))
 		return DbModel.State.update(dataToStore, { returning: true, where: { id: data.id } })
 			.then(async _ => {
 				return await this.getOne(next, (data.id as number));

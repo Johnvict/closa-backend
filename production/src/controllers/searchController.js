@@ -15,15 +15,41 @@ class SearchController {
         return __awaiter(this, void 0, void 0, function* () {
             const data = yield exported_classes_1.searchModel.create(next, Object.assign(Object.assign({}, req.body), { agent_id: req.agent.id }));
             console.log(data);
-            if (data)
-                return res.status(201).json({ status: 1, data });
+            // if (data) return res.status(201).json({status: 1, data });
         });
     }
     search(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield exported_classes_1.searchModel.workerWithjobsTitle(req.body);
+            const data = yield exported_classes_1.searchModel.workerWithjobsTitle(req.body, req.agent.id);
             if (data)
                 return res.status(201).json({ status: 1, data });
+        });
+    }
+    allSearches(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const searches = yield exported_classes_1.searchModel.getAll();
+            return res.status(201).json(Object.assign({ status: 1 }, searches));
+        });
+    }
+    allSearchesMore(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const searches = yield exported_classes_1.searchModel.getAllMore(req.body);
+            if (searches)
+                return res.status(201).json(Object.assign({ status: 1 }, searches));
+        });
+    }
+    searchesForChart(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield exported_classes_1.searchModel.searchHistoryByKeyFromStateOrTownForChart(req.body);
+            if (data)
+                return res.status(201).json(Object.assign({ status: 1 }, data));
+        });
+    }
+    searchesForAdmin(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield exported_classes_1.searchModel.searchHistoryByKeyFromStateOrTownForAdmin(req.body);
+            if (data)
+                return res.status(201).json(Object.assign({ status: 1 }, data));
         });
     }
     searchToArrange(req, res, next) {
@@ -39,7 +65,11 @@ class SearchController {
                 return res.json(response.error);
             console.log(response.data);
             console.log(response.error);
-            return res.status(200).send(yield this.sortComputeRating(response.data.data, req.body.my_lat, req.body.my_long));
+            res.status(200).send({
+                status: response.data.status,
+                data: yield this.sortComputeRating(response.data.data, req.body.my_lat, req.body.my_long)
+            });
+            return exported_classes_1.searchModel.create(next, { agent_id: req.agent.id, key: req.body.job });
         });
     }
     sortComputeRating(data, my_lat, my_long) {

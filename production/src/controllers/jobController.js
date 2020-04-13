@@ -29,23 +29,44 @@ class JobController {
             }
         });
     }
-    jobsByStatusFrom(req, res, next) {
+    jobsByStatusFromStateOrTown(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield exported_classes_1.jobModel.jobsStatusFrom(req.body);
+            const data = yield exported_classes_1.jobModel.jobsBasedOnStatusFromStateOrTownForChart(req.body);
             if (data)
                 return res.status(200).json(Object.assign({ status: 1 }, data));
         });
     }
-    jobsStatusWithTitleFrom(req, res, next) {
+    jobsByTitleTitleStatusFromStateOrTown(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const data = yield exported_classes_1.jobModel.jobsStatusWithTitleFrom(req.body);
+            const data = yield exported_classes_1.jobModel.jobsByTitleAndStatusFromStateOrTownForChart(req.body);
             if (data)
                 return res.status(200).json(Object.assign({ status: 1 }, data));
         });
     }
-    getAllJobs(req, res, next) {
+    jobsByStatusFromStateOrTownForAdmin(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield exported_classes_1.jobModel.jobsBasedOnStatusFromStateOrTownForAdmin(req.body);
+            if (data)
+                return res.status(200).json(Object.assign({ status: 1 }, data));
+        });
+    }
+    jobsByTitleStatusFromStateOrTownForAdmin(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield exported_classes_1.jobModel.jobsByTitleAndStatusFromStateOrTownForAdmin(req.body);
+            if (data)
+                return res.status(200).json(Object.assign({ status: 1 }, data));
+        });
+    }
+    getAllJobsForAdmin(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const data = yield exported_classes_1.jobModel.getAll();
+            if (data)
+                return res.status(200).json(Object.assign({ status: 1 }, data));
+        });
+    }
+    getAllJobsMoreForAdmin(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = yield exported_classes_1.jobModel.getAllMore(req.body);
             if (data)
                 return res.status(200).json(Object.assign({ status: 1 }, data));
         });

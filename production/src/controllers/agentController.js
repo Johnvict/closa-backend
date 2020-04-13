@@ -14,10 +14,14 @@ class AgentController {
     // For a super admin who wants to see all registered user
     allAgents(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            res.status(200).json({
-                status: 1,
-                data: yield exported_classes_1.agentModel.getAll(next)
-            });
+            const agents = yield exported_classes_1.agentModel.getAll(next);
+            return res.status(200).json(Object.assign({ status: 1 }, agents));
+        });
+    }
+    allAgentsMore(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const agents = yield exported_classes_1.agentModel.getAllMore(req.body);
+            return res.status(200).json(Object.assign({ status: 1 }, agents));
         });
     }
     create(req, res, next) {
@@ -30,8 +34,7 @@ class AgentController {
     }
     update(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const id = req.agent.id;
-            console.table(req.agent);
+            const id = req.agent.id; // ? Do not worry, newAgentMiddleware added the agent->id already
             const isToken = req.body.token;
             exported_classes_1.agentModel.update(next, Object.assign({}, req.body), isToken, id).then(response => {
                 if (response)
@@ -61,13 +64,13 @@ class AgentController {
                         token: exported_classes_1.auth.generateToken(userData.id, userData.phone, userData.type, otherid),
                         data: userData
                     });
-                    return this.upDateLoginTime(userData.id, next);
+                    return this.upDateLoginTime(userData.id, userData.phone, next);
                 }
             }
         });
     }
-    upDateLoginTime(id, next) {
-        exported_classes_1.agentModel.update(next, { active: true, lastLoginAt: Date.now() }, id);
+    upDateLoginTime(id, phone, next) {
+        exported_classes_1.agentModel.update(next, { active: true, lastLoginAt: Date.now(), phone: phone }, null, id);
     }
     changePassword(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {

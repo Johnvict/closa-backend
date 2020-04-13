@@ -10,6 +10,7 @@ const locationController_1 = require("../controllers/locationController");
 const userController_1 = require("./../controllers/userController");
 const workerController_1 = require("./../controllers/workerController");
 const searchController_1 = require("./../controllers/searchController");
+const admin_1 = require("./../models/admin");
 const user_1 = require("./../models/user");
 const agent_1 = require("./../models/agent");
 const worker_1 = require("./../models/worker");
@@ -41,7 +42,8 @@ exports.DbModel = {
     SearchHistory: require('./../models/definition/SearchHistory'),
     User: require('./../models/definition/User'),
     Worker: require('./../models/definition/Worker'),
-    Token: require('./../models/definition/Token')
+    Token: require('./../models/definition/Token'),
+    Admin: require('./../models/definition/Admin')
 };
 exports.sequelize = require('./connection');
 /**
@@ -57,6 +59,7 @@ exports.jobCtrl = new jobController_1.JobController();
 exports.searchCtrl = new searchController_1.SearchController();
 /**
  * ! Model import for exports */
+exports.adminModel = new admin_1.AdminModel();
 exports.agentModel = new agent_1.AgentModel();
 exports.userModel = new user_1.UserModel();
 exports.workerModel = new worker_1.WorkerModel();
@@ -75,4 +78,6 @@ exports.validator = new validator_1.Validator();
  * ! Standalone methods */
 exports.formatError = exports.validator.formatError;
 exports.apiCaller = api_caller_1.makeAPICall;
-exports.distanceCalculator = helper_functions_1.convertToDistance;
+const helperFunctions = new helper_functions_1.HelperFunctions();
+exports.distanceCalculator = helperFunctions.convertToDistance;
+exports.formatIntoRegExQueryArray = helperFunctions.formatIntoRegExQueryArray;

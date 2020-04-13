@@ -1,5 +1,5 @@
-import { GenericObject, NewSearchHistory, SearchHistory, SearchWorkerFromStateTown } from './../misc/structs';
-import { DbModel, AppError } from './../app/exported.classes';
+import { GenericObject, NewSearchHistory, SearchHistory, SearchWorkerFromStateTown, SearchHistoryFromStateTown } from './../misc/structs';
+import { DbModel, AppError, formatIntoRegExQueryArray } from './../app/exported.classes';
 
 import * as sequelize from 'sequelize'
 const Op = sequelize.Op;
@@ -34,46 +34,26 @@ export class SearchModel {
 			},
 			defaults: newSearchHistory
 		});
-		// if (created) return await this.getOne(next, history.id)
-		// return history
 	}
 
 	async getOne(next, id: number): Promise<SearchHistory> {
 		return await DbModel.Job.findByPk(id);
 	}
 
-
-	formatIntoQueryArray(arr: string[]) {
-		return arr.map(str => {
-			str = this.formatStringToFitRegExcape(str);
-			const query = { [Op.regexp]: `.*${str}.*` }
-			return query
+	async searchesWithKeyWord(filter: SearchHistoryFromStateTown, my_id) {
+		const filterArg = await formatIntoRegExQueryArray(filter.key)
+		return DbModel.SearchHistory.findAll({
+			where: {
+				key: { [Op.or]: filterArg }
+			},
+			attributes: ['key'],
+		}).then(async result => {
+			return result
 		})
 	}
 
-
-	sortByDistance() { }
-
-	formatStringToFitRegExcape(theStr) {
-		return theStr.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-	}
-
-	async convertTitle(title) {
-		const skips = ["and", "or", "with", "on", "of", "for", "under", "across", "&", "in", "an"]
-		const arr: string[] = title.split(' ')
-		await skips.forEach(el => {
-			const ind = arr.indexOf(el)
-			if (ind >= 0) arr.splice(ind, 1)
-			const indexOfNull = arr.indexOf("")
-			if (indexOfNull >= 0) arr.splice(indexOfNull, 1)
-		});
-
-		return arr;
-	}
-
-	async workerWithjobsTitle(filter: SearchWorkerFromStateTown, my_id) {
-		const searchKeys = await this.convertTitle(filter.job);
-		const filterArg = await this.formatIntoQueryArray(searchKeys)
+	workerWithjobsTitle(filter: SearchWorkerFromStateTown, my_id) {
+		const filterArg = formatIntoRegExQueryArray(filter.job)
 		return DbModel.Worker.findAll({
 			where: {
 				[Op.and]: [
@@ -84,10 +64,10 @@ export class SearchModel {
 			attributes: ['name', 'logo', 'job', 'agent_id'],
 			include: [
 				{
-					model: DbModel.Agent, as: 'agent', attributes: ['phone'], where: { id: {[Op.ne]: my_id} }, required: true, include: [
+					model: DbModel.Agent, as: 'agent', attributes: ['phone'], required: true, include: [
 						{
 							model: DbModel.Location, as: 'location', required: true,
-							where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id },
+							where: { [Op.and]: [{ [`${filter.state_or_town}_id`]: filter.state_or_town_id }, { id: { [Op.ne]: my_id } }] },
 							attributes: ['name', 'image', 'long', 'lat'],
 							include: [
 								{ model: DbModel.State, as: 'state', attributes: ['name'] },
@@ -98,62 +78,87 @@ export class SearchModel {
 					]
 				},
 			],
-		}).then( async result => {
-			return result
+		}).then(result => {
+			return result;
+		});
+	}
+
+	async getAll(): Promise<SearchHistory[]> {
+		return DbModel.SearchHistory.findAndCountAll({
+			order: [['createdAt', 'desc']], limit: 20,
+			attributes: ['key'],
+			include: {
+				model: DbModel.Agent, as: 'agent',
+				attributes: ['username', 'email', 'phone', 'id', 'type', 'gender', 'dob']
+			},
+		})
+			.then(result => {
+				const isLastPageNoMore = result.count >= 20 ? false : true;
+				return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
+			});
+	}
+
+	async getAllMore(filter: { page: number, sort: 'desc' | 'asc' }) {
+		const sort = filter.sort ? filter.sort : 'desc';
+		return DbModel.SearchHistory.findAndCountAll({
+			order: [['createdAt', sort]], limit: 20,
+			attributes: ['key'],
+			offset: 20 * filter.page,
+			include: {
+				model: DbModel.Agent, as: 'agent',
+				attributes: ['username', 'email', 'phone', 'id', 'type', 'gender', 'dob']
+			},
+		}).then(result => {
+			const pageIncMonitor = (filter.page + 2) * 20;
+			const isLastPageNoMore = result.count >= pageIncMonitor ? false : true;
+			return { total: result.count, lastPage: isLastPageNoMore, more: !isLastPageNoMore, data: result.rows }
 		})
 	}
-	// async jobsStatusFrom(filter: JobByStatusFromStateOrTown) {
-
-	// 	return DbModel.Job.findAndCountAll({
-	// 		where: {
-	// 			createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] },
-	// 		},
-	// 		include: {
-	// 			model: DbModel.Agent, as: 'worker', required: true, include: {
-	// 				model: DbModel.Location, as: 'location', required: true, where: { [`${filter.state_or_town}_id`]: filter.state_or_town_id }
-	// 			}
-	// 		},
-	// 		group: ['status']
-	// 	}).then(result => {
-	// 		const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
-	// 		const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
-	// 		return { total, data: regroup }
-	// 	})
-	// }
 
 
+	async searchHistoryByKeyFromStateOrTownForAdmin(filter: SearchHistoryFromStateTown) {
+		const result = await this.loadSearchHistoryFromStateOrTown(filter);
 
+		const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
 
+		const pageIncMonitor = ((filter.page as number) + 1) * 20;
+		const isLastPageNoMore = total >= pageIncMonitor ? false : true;
+		const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
+		return { total, lastPage: isLastPageNoMore, more: !isLastPageNoMore, summary: regroup, data: result.rows, }
+	}
+	async searchHistoryByKeyFromStateOrTownForChart(filter: SearchHistoryFromStateTown) {
+		const result = await this.loadSearchHistoryFromStateOrTown(filter);
+		const total = result.count.map(el => el.count).reduce((sum, num) => sum + num, 0)
+		const regroup = result.count.map(el => ({ ...el, percent: (el.count / total) * 100 }))
+		return { total, data: regroup }
+	}
 
-	// async delete(next, id: number): Promise<any> {
-	// 	try {
-	// 		DbModel.Job.destroy({ where: { id } }).then(data => {
-	// 			return data < 1 ? next(new AppError('data not found', 400, -1)) : true
-	// 		});
-	// 	} catch (err) {
-	// 		return next(err.message)
-	// 	}
-	// }
+	async loadSearchHistoryFromStateOrTown(filter: SearchHistoryFromStateTown) {
+		const filterArg = await formatIntoRegExQueryArray(filter.key)
+		const sort = filter.sort ? filter.sort : 'desc';
 
-	// async findOneWithFilter(next, filterArgs: GenericObject): Promise<Job> {
-	// 	const state = await DbModel.Job.findOne({ where: filterArgs })
-	// 	return state ? state : next(new AppError('no job data found with this credential', 400, -1))
-	// }
-
-	// whatToUpdate(data): GenericObject {
-	// 	const newData = {}
-	// 	for (let key in data) {
-	// 		newData[key] = data[key]
-	// 	}
-	// 	return newData
-	// }
-
-	// async update(next, data: UpdateJob): Promise<Job> {
-	// 	const dataToStore = this.whatToUpdate(data);
-	// 	return DbModel.Job.update(dataToStore, { returning: true, where: { id: data.id } })
-	// 		.then(async _ => {
-	// 			return await this.getOne(next, (data.id as number));
-	// 		})
-	// 		.catch(e => console.log(e))
-	// }
+		return DbModel.SearchHistory.findAndCountAll({
+			where: {
+				[Op.and]: [
+					{ createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] } },
+					{ key: { [Op.or]: filterArg } }
+				]
+			},
+			include: {
+				model: DbModel.Agent, as: 'agent',
+				required: filter.state_or_town == 'all' ? false : true,
+				attributes: ['username', 'email', 'phone', 'id', 'type', 'gender', 'dob'],
+				include: {
+					model: DbModel.Location, as: 'location',
+					required: true,
+					where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [Op.gt]: 0 } : filter.state_or_town_id }
+				}
+			},
+			attributes: ['key', 'createdAt'],
+			order: [['createdAt', sort]],
+			limit: filter.page ? 20 : null,
+			offset: filter.page ? 20 * (filter.page - 1) : null,
+			group: ['createdAt']
+		})
+	}
 }

@@ -44,7 +44,7 @@ export class FileController {
 		}
 	}
 	fileFilter = (req, file, cb)  => {
-		if (file.mimetype == 'application/pdf') {
+		if (file.mimetype == 'application/pdf' || file.mimetype.startsWith('image')) {
 			cb(null, true)
 		} else {
 			cb(new AppError('invalid file format', 400, -1), false)
