@@ -1,5 +1,5 @@
-import * as functions from 'firebase-functions';
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //

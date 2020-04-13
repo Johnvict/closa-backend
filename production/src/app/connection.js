@@ -19,28 +19,19 @@ else {
     db = process.env.DB_NAME;
     dbPassword = process.env.DB_PASSWORD;
 }
+console.table({ db, dbUser, dbPassword });
 const Sequelize = require('sequelize');
-const sequelize = new Sequelize(db, dbUser, dbPassword', {
+const sequelize = new Sequelize(db, dbUser, dbPassword, {
     host: 'localhost',
     dialect: 'mysql',
     timezone: '+01:00'
 });
-
-async function connectDb() {
-	try {
-		sequelize.authenticate().then(() => {
-			console.log('DB Connection established successfully.');
-		}).catch(err => {
-			console.error('FATAL ERROR, Unable to connect to the DB:', err.message);
-			process.exit(1);
-		});
-		
-	} catch (error) {
-		console.log(error.message)
-	}
-}
-connectDb()
-
+sequelize.authenticate().then(() => {
+    console.log('DB Connection established successfully.');
+}).catch(err => {
+    console.error('FATAL ERROR, Unable to connect to the DB:', err);
+    process.exit(1);
+});
 app.use(express_1.default.static(`${__dirname}/../../public`));
 // app.use(express.static(`${__dirname}/public`))
 app.use((req, res, next) => {
