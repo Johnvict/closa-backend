@@ -1,4 +1,5 @@
 "use strict";
+// const functions = require('firebase-functions');
 Object.defineProperty(exports, "__esModule", { value: true });
 const config = require('./app/config');
 const { io, app, server, sequelize } = require('./app/connection');
@@ -13,6 +14,7 @@ app.all('*', (req, res, next) => {
     next(new exported_classes_1.AppError(`Sorry ${req.originalUrl} is not found on this server `, 404));
 });
 app.use(globalErrorHandler);
+// exports.ap = functions.onRequest(app);
 // const func = () => {
 // 	Math.sin(90);
 // 	Math.asin(0.0809);

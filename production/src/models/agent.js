@@ -58,7 +58,10 @@ class AgentModel {
             }).then((queryRes) => __awaiter(this, void 0, void 0, function* () {
                 const token = yield this.generateToken(queryRes[0].id);
                 exported_classes_1.tokenModel.create(next, token);
-                return yield Object.assign({}, this.getOne(next, queryRes[0].id));
+                console.log('QUERY-RESPONSE-0', queryRes[0]);
+                console.log('QUERY-RESPONSE-1', queryRes[1]);
+                return yield { data: queryRes[0] };
+                // return await { token: token, data: ...this.getOne(next, queryRes[0].id) }
             })).catch(e => console.log(e));
         });
     }
@@ -160,11 +163,11 @@ class AgentModel {
             const dataToStore = yield this.whatToUpdate(next, agent, id);
             if (this.duplicateExist)
                 return;
-            let data, exist;
+            let data; // exist;
             const getAgentData = () => __awaiter(this, void 0, void 0, function* () {
                 if (isToken) {
                     data = yield this.findOneWithFilter(next, { [Op.and]: [{ phone: agent.phone }, { id }] });
-                    exist = data.password ? true : false;
+                    // exist = data.password ? true : false;
                     if (!data)
                         return next(new exported_classes_1.AppError('Invalid credentials submitted', 400, -1));
                 }
@@ -174,8 +177,7 @@ class AgentModel {
                 return data;
             });
             yield getAgentData();
-            if (exist)
-                return next(new exported_classes_1.AppError('Account creation is already done', 400, -1));
+            // if (exist) return next(new AppError('Account creation is already done', 400, -1))
             if (!isToken)
                 delete dataToStore['type']; // ? The agent already created account completely, they can't change account type again
             return exported_classes_1.DbModel.Agent.update(dataToStore, { returning: true, where: id ? { id } : { phone: agent.phone } })

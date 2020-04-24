@@ -4,7 +4,7 @@ import { Joi } from '@hapi/joi';
 
 export class Validator {
 	newAccount = Joi.object({
-		phone: Joi.string().max(15).required(),
+		phone: Joi.string().min(11).max(14).required(),
 	})
 	newAgent = Joi.object({
 		agent_id: Joi.number().required(),

@@ -22,6 +22,17 @@ class AdminController {
             }
         });
     }
+    oneAdmin(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.isThisAdminAllowed(req, res, next, 'access')) {
+                const adminData = yield exported_classes_1.adminModel.findOneWithFilter(next, { id: req.params.id });
+                return res.status(200).json({
+                    status: 1,
+                    data: adminData
+                });
+            }
+        });
+    }
     create(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.isThisAdminAllowed(req, res, next, 'create')) {

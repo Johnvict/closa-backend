@@ -52,8 +52,11 @@ export class AgentModel {
 		}).then(async (queryRes) => {
 			const token: NewToken = await this.generateToken(queryRes[0].id)
 			tokenModel.create(next, token)
-			return await { ...this.getOne(next, queryRes[0].id) }
-		}).catch(e => console.log(e));
+			console.log('QUERY-RESPONSE-0', queryRes[0]);
+			console.log('QUERY-RESPONSE-1', queryRes[1]);
+			return await { data: queryRes[0] }
+			// return await { token: token, data: ...this.getOne(next, queryRes[0].id) }
+		}).catch(e => console.log(e)); 
 	}
 
 	async generateToken(agent_id: number): Promise<NewToken> {
@@ -142,11 +145,11 @@ export class AgentModel {
 		this.duplicateExist = false;
 		const dataToStore = await this.whatToUpdate(next, agent, (id as number));
 		if (this.duplicateExist) return
-		let data, exist;
+		let data; // exist;
 		const getAgentData = async () => {
 			if (isToken) {
 				data = await this.findOneWithFilter(next, { [Op.and] : [{phone: agent.phone}, {id}] })
-				exist = data.password ? true : false;
+				// exist = data.password ? true : false;
 				if (!data) return next(new AppError('Invalid credentials submitted', 400, -1))
 			} else {
 				data = await this.getOne(next, id as number)
@@ -155,7 +158,7 @@ export class AgentModel {
 		}
 		await getAgentData();
 
-		if (exist) return next(new AppError('Account creation is already done', 400, -1))
+		// if (exist) return next(new AppError('Account creation is already done', 400, -1))
 		if (!isToken) delete dataToStore['type'];		// ? The agent already created account completely, they can't change account type again
 		return DbModel.Agent.update(dataToStore, { returning: true, where: id ? { id } : { phone: agent.phone } })
 			.then(async (updatedUser) => {

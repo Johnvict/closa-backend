@@ -21,7 +21,7 @@ export const agentMiddleware = (req: any, res: any, next: any) => {
 export const newAgentMiddleware = async (req, res, next) => {
 	const { agent_id, token } = req.body;
 	const isTokenValid = await tokenModel.validateToken({ agent_id, token })
-	console.table({	isTokenValid: isTokenValid})
+	// console.table({	isTokenValid: isTokenValid})
 	req.agent = { id: agent_id, token }
 	if (isTokenValid) return next()
 	return res.status(401).json({ message: 'Invalid token provided.', status: -1})

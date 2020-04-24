@@ -21,10 +21,13 @@ export class AgentController {
 
 
 	async create(req, res, next) {
-		return res.status(201).json({
-			status: 1,
-			data: await agentModel.createAgent(next, req.body)
-		})
+		const newAgent = await agentModel.createAgent(next, req.body);
+		if (newAgent) {
+			return res.status(201).json({
+				status: 1,
+				...newAgent
+			})
+		}
 	}
 
 

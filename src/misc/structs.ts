@@ -93,6 +93,7 @@ export interface UpdateUser {
 	avatar?: string;
 }
 export interface UserStruct extends Regular {
+	agent_id: number;
 	name: string;
 	avatar: string;
 	occupation?: string;

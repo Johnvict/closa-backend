@@ -26,10 +26,10 @@ class AgentController {
     }
     create(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            return res.status(201).json({
-                status: 1,
-                data: yield exported_classes_1.agentModel.createAgent(next, req.body)
-            });
+            const newAgent = yield exported_classes_1.agentModel.createAgent(next, req.body);
+            if (newAgent) {
+                return res.status(201).json(Object.assign({ status: 1 }, newAgent));
+            }
         });
     }
     update(req, res, next) {

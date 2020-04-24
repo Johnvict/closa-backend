@@ -12,6 +12,7 @@ const validate = exported_classes_1.validator.validate;
 Router.post('/', auth_middleware_1.superAdminMiddleware, validate(exported_classes_1.validator.newAdmin), (req, res, next) => exported_classes_1.adminCtrl.create(req, res, next));
 Router.post('/login', validate(exported_classes_1.validator.adminloginData), (req, res, next) => exported_classes_1.adminCtrl.login(req, res, next));
 Router.get('/all', auth_middleware_1.superAdminMiddleware, (req, res, next) => exported_classes_1.adminCtrl.allAdmins(req, res, next));
+Router.get('/one:id', auth_middleware_1.superAdminMiddleware, (req, res, next) => exported_classes_1.adminCtrl.oneAdmin(req, res, next));
 Router.put('/self', auth_middleware_1.adminMiddleware, validate(exported_classes_1.validator.updateAdmin), (req, res, next) => exported_classes_1.adminCtrl.update(req, res, next));
 Router.put('/super', auth_middleware_1.superAdminMiddleware, validate(exported_classes_1.validator.updateAdminSuper), (req, res, next) => exported_classes_1.adminCtrl.updateSuper(req, res, next));
 Router.delete('/', auth_middleware_1.superAdminMiddleware, validate(exported_classes_1.validator.deleteWithId), (req, res, next) => exported_classes_1.adminCtrl.delete(req, res, next));

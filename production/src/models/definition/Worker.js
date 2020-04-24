@@ -13,6 +13,13 @@ class Worker extends Model {
                 .map(eachNum => {
                 return days[eachNum * 1];
             });
+        const date = new Date();
+        if (attributes["opening_time"]) {
+            attributes["opening_time"] = new Date(`${date.getMonth() + 1}-${date.getDate()}-${date.getFullYear()} ${attributes["opening_time"]}:00`);
+        }
+        if (attributes["closing_time"]) {
+            attributes["closing_time"] = new Date(`${date.getMonth() + 1}-${date.getDate()}-${date.getFullYear()} ${attributes["closing_time"]}:00`);
+        }
         return attributes;
     }
 }

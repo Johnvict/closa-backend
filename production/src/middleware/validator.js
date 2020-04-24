@@ -4,7 +4,7 @@ const Joi = require('@hapi/joi');
 class Validator {
     constructor() {
         this.newAccount = Joi.object({
-            phone: Joi.string().max(15).required(),
+            phone: Joi.string().min(11).max(14).required(),
         });
         this.newAgent = Joi.object({
             agent_id: Joi.number().required(),

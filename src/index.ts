@@ -1,3 +1,5 @@
+// const functions = require('firebase-functions');
+
 const config = require('./app/config');
 const { io, app, server, sequelize } = require('./app/connection')
 const Routes = require('./routes/routes');
@@ -15,6 +17,7 @@ app.all('*', (req, res, next) => {
 
 app.use(globalErrorHandler)
 
+// exports.ap = functions.onRequest(app);
 
 
 
