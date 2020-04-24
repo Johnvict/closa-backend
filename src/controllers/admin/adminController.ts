@@ -17,10 +17,10 @@ export class AdminController {
 
 	async oneAdmin(req, res, next) {
 		if (this.isThisAdminAllowed(req, res, next, 'access')) {
-			const adminData = await adminModel.findOneWithFilter(next, { id: req.params.id })
+			const admin = await adminModel.findOneWithFilter(next, { id: req.params.id })
 			return res.status(200).json({
 				status: 1,
-				data: adminData
+				data: admin
 			})
 		}
 	}
