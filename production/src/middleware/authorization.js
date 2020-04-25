@@ -9,14 +9,13 @@ class Authorization {
     constructor() {
         this.jwtSecret = process.env.JWT_SECRET;
     }
-    comparePassword(next, data, isChangePassword = null) {
+    comparePassword(next, data, isChangePassword) {
         if (bcrypt.compareSync(data.candidatePassword, data.hashedPassword)) {
             return true;
-		}
-
-		const statusCode =  isChangePassword ? 200 : 401
-		const statusMessage =  isChangePassword ? 'old password is invalid' : 'invalid credential'
-		next(new AppError( statusMessage , statusCode, -1))
+        }
+        const statusCode = isChangePassword ? 200 : 401;
+        const statusMessage = isChangePassword ? 'old password is invalid' : 'invalid credential';
+        next(new exported_classes_1.AppError(statusMessage, statusCode, -1));
     }
     hashPassword(password) {
         return bcrypt.hashSync(password, salt);

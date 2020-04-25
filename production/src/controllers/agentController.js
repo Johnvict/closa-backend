@@ -76,7 +76,7 @@ class AgentController {
         return __awaiter(this, void 0, void 0, function* () {
             let { old_password, new_password } = req.body;
             let agent = yield exported_classes_1.agentModel.findOneWithFilter(next, { id: req.agent.id }, 'invlid credentials');
-            if (exported_classes_1.auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: agent.password })) {
+            if (exported_classes_1.auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: agent.password }, true)) {
                 exported_classes_1.agentModel.update(next, { password: new_password }, agent.id).then(response => {
                     console.log(response);
                     if (response)

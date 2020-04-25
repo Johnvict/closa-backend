@@ -70,7 +70,7 @@ export class AgentController {
 	async changePassword(req: any, res, next) {
 		let { old_password, new_password } = req.body;
 		let agent = await agentModel.findOneWithFilter(next, { id: req.agent.id }, 'invlid credentials')
-		if (auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: agent.password })) {
+		if (auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: agent.password }, true)) {
 			agentModel.update(next, { password: new_password }, agent.id).then(response => {
 				console.log(response)
 				if (response) return res.status(200).json({ status: 1, data: response });
