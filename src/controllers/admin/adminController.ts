@@ -92,7 +92,7 @@ export class AdminController {
 		let { old_password, new_password } = req.body;
 		let adminData = await adminModel.findOneWithFilter(next, { id: req.admin.id })
 		if (!adminData) return res.status(200).json({ status: -1, message: 'invalid credentials' })
-		if (auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: adminData.password })) {
+		if (auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: adminData.password }, true)) {
 			adminModel.update(next, { password: new_password, id: adminData.id }).then(response => {
 				console.log(response)
 				if (response) return res.status(200).json({ status: 1, data: response });

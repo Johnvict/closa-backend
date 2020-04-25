@@ -10,11 +10,13 @@ export class Authorization {
 	jwtSecret = process.env.JWT_SECRET;
 
 
-	comparePassword(next, data: PasswordAuthValidation){
+	comparePassword(next, data: PasswordAuthValidation, isChangePassword?){
 		if (bcrypt.compareSync(data.candidatePassword, data.hashedPassword)) {
 			return true
 		}
-		next(new AppError('invalid credentials', 401, -1))
+		const statusCode =  isChangePassword ? 200 : 401
+		const statusMessage =  isChangePassword ? 'old password is invalid' : 'invalid credential'
+		next(new AppError( statusMessage , statusCode, -1))
 	}
 	
 	hashPassword(password: string) {
