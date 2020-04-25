@@ -39,9 +39,9 @@ class AdminModel {
     delete(next, id) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                exported_classes_1.DbModel.Admin.destroy({ where: { id } }).then(data => {
-                    return data < 1 ? next(new exported_classes_1.AppError('data not found', 400, -1)) : true;
-                });
+                const data = yield exported_classes_1.DbModel.Admin.destroy({ where: { id } });
+                console.log(data);
+                return data < 1 ? next(new exported_classes_1.AppError('no admin data found with this credential', 400, -1)) : true;
             }
             catch (err) {
                 return next(err.message);

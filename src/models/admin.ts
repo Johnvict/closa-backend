@@ -27,9 +27,9 @@ export class AdminModel {
 
 	async delete(next, id: number): Promise<any> {
 		try {
-			DbModel.Admin.destroy({ where: { id } }).then(data => {
-				return data < 1 ? next(new AppError('data not found', 400, -1)) : true
-			});
+			const data = await DbModel.Admin.destroy({ where: { id } })
+			console.log(data)
+			return data < 1 ? next(new AppError('no admin data found with this credential', 400, -1)) : true
 		} catch (err) {
 			return next(err.message)
 		}

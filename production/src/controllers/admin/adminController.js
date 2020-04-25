@@ -67,7 +67,7 @@ class AdminController {
     delete(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.isThisAdminAllowed(req, res, next, 'delete')) {
-                exported_classes_1.adminModel.update(next, req.body).then(data => {
+                exported_classes_1.adminModel.delete(next, req.body.id).then(data => {
                     if (data) {
                         return res.status(200).json({
                             status: 1,
