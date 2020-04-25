@@ -107,7 +107,7 @@ class AdminController {
             let { old_password, new_password } = req.body;
             let adminData = yield exported_classes_1.adminModel.findOneWithFilter(next, { id: req.admin.id });
             if (!adminData)
-                return res.status(401).json({ status: -1, message: 'invalid credentials' });
+                return res.status(200).json({ status: -1, message: 'invalid credentials' });
             if (exported_classes_1.auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: adminData.password })) {
                 exported_classes_1.adminModel.update(next, { password: new_password, id: adminData.id }).then(response => {
                     console.log(response);
