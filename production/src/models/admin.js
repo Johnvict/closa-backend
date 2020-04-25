@@ -17,6 +17,13 @@ class AdminModel {
     create(next, newAdmin) {
         return __awaiter(this, void 0, void 0, function* () {
             newAdmin.password = exported_classes_1.auth.hashPassword(newAdmin.password);
+            for (let key in newAdmin) {
+                if (key == 'username' || key == 'email' || key == 'phone') {
+                    if (yield this.checkUniquenessExistence(newAdmin[key], key)) {
+                        return next((new exported_classes_1.AppError(`this ${key} is already taken`, 400, -1)));
+                    }
+                }
+            }
             const [admin, created] = yield exported_classes_1.DbModel.Admin.findOrCreate({
                 where: { [Op.or]: [{ username: newAdmin.username }, { phone: newAdmin.phone }, { email: newAdmin.email }] },
                 defaults: newAdmin
@@ -54,21 +61,39 @@ class AdminModel {
             return admin ? admin : next(new exported_classes_1.AppError('no admin data found with this credential', 400, -1));
         });
     }
-    whatToUpdate(data) {
-        const newData = {};
-        for (let key in data) {
-            if (key == 'password')
-                data[key] = exported_classes_1.auth.hashPassword(data.password);
-            newData[key] = data[key];
-        }
-        return newData;
+    whatToUpdate(next, data, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const newData = {};
+            for (let key in data) {
+                if (key == 'phone' || key == 'email' || key == 'username') {
+                    if (yield this.checkUniquenessExistence(data[key], key, id)) {
+                        next((new exported_classes_1.AppError(`this ${key} is already taken`, 400, -1)));
+                        return false;
+                    }
+                }
+                if (key == 'password')
+                    data[key] = exported_classes_1.auth.hashPassword(data.password);
+                newData[key] = data[key];
+            }
+            return newData;
+        });
+    }
+    checkUniquenessExistence(value, key, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const admin = id
+                ? yield exported_classes_1.DbModel.Admin.findOne({ where: { [Op.and]: [{ [key]: value }, { id: { [Op.ne]: id } }] } })
+                : yield exported_classes_1.DbModel.Admin.findOne({ where: { [key]: value } });
+            return admin ? true : false;
+        });
     }
     update(next, data) {
         return __awaiter(this, void 0, void 0, function* () {
             const admin = yield this.getOne(next, data.id);
             if (!admin)
                 return next(new exported_classes_1.AppError('no admin data found with this credential', 400, -1));
-            const dataToStore = this.whatToUpdate(data);
+            const dataToStore = yield this.whatToUpdate(next, data, data.id);
+            if (typeof dataToStore == 'boolean')
+                return null;
             return exported_classes_1.DbModel.Admin.update(dataToStore, { returning: true, where: { id: data.id } })
                 .then((_) => __awaiter(this, void 0, void 0, function* () {
                 return yield this.getOne(next, data.id);

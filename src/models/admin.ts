@@ -9,10 +9,18 @@ export class AdminModel {
 	constructor() { }
 	async create(next, newAdmin: NewAdmin): Promise<Admin> {
 		newAdmin.password = auth.hashPassword(newAdmin.password);
+		for (let key in newAdmin) {
+			if (key == 'username' || key == 'email' || key == 'phone') {
+				if (await this.checkUniquenessExistence(newAdmin[key], key)) {
+					return next((new AppError(`this ${key} is already taken`, 400, -1)));
+				}
+			}
+		}
 		const [admin, created] = await DbModel.Admin.findOrCreate({
 			where: { [Op.or]: [{ username: newAdmin.username }, { phone: newAdmin.phone }, { email: newAdmin.email }] },
 			defaults: newAdmin
 		});
+		
 		if (created) return await this.getOne(next, admin.id)
 		return admin
 	}
@@ -40,19 +48,33 @@ export class AdminModel {
 		return admin ? admin : next(new AppError('no admin data found with this credential', 400, -1))
 	}
 
-	whatToUpdate(data): GenericObject {
+	async whatToUpdate(next, data, id): Promise<GenericObject | false> {
 		const newData = {}
 		for (let key in data) {
+			if (key == 'phone' || key == 'email' || key == 'username') {
+				if (await this.checkUniquenessExistence(data[key], key, id)) {
+					next((new AppError(`this ${key} is already taken`, 400, -1)));
+					return false;
+				}
+			}
 			if (key == 'password') data[key] = auth.hashPassword(data.password)
 			newData[key] = data[key]
 		}
 		return newData
 	}
 
-	async update(next, data: UpdateAdmin): Promise<Admin> {
+	async checkUniquenessExistence(value: string, key: string, id?): Promise<boolean> {
+		const admin = id 
+			? await DbModel.Admin.findOne({ where: { [Op.and]: [{ [key]: value }, { id: {[Op.ne]: id} }] }})
+			: await DbModel.Admin.findOne({ where: { [key]: value } })
+		return admin ? true : false
+	}
+
+	async update(next, data: UpdateAdmin): Promise<Admin | null> {
 		const admin = await this.getOne(next, data.id)
 		if (!admin) return next(new AppError('no admin data found with this credential', 400, -1))
-		const dataToStore = this.whatToUpdate(data);
+		const dataToStore = await this.whatToUpdate(next, data, data.id);
+		if (typeof dataToStore == 'boolean') return null;
 		return DbModel.Admin.update(dataToStore, { returning: true, where: { id: data.id } })
 		.then(async _ => {
 			return await this.getOne(next, (data.id as number));

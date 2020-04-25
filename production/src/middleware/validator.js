@@ -41,13 +41,9 @@ class Validator {
             type: Joi.alternatives(['admin', 'super'])
         });
         this.updateAdmin = Joi.object({
-            password: Joi.string().min(5).max(200),
             phone: Joi.string().min(11).max(15),
-            username: Joi.string().min(3).max(25),
-            email: Joi.string().email().max(25),
             dob: Joi.date(),
             gender: Joi.alternatives(['male', 'female']),
-            type: Joi.alternatives(['admin', 'super'])
         });
         // if type is link, link will be provided, else null
         // if type is not link, link will be saved as null then updated on file upload

@@ -36,10 +36,13 @@ class AdminController {
     create(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.isThisAdminAllowed(req, res, next, 'create')) {
-                return res.status(201).json({
-                    status: 1,
-                    data: yield exported_classes_1.adminModel.create(next, req.body)
-                });
+                const adminData = yield exported_classes_1.adminModel.create(next, req.body);
+                if (adminData) {
+                    return res.status(201).json({
+                        status: 1,
+                        data: adminData
+                    });
+                }
             }
         });
     }
@@ -67,7 +70,7 @@ class AdminController {
     delete(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.isThisAdminAllowed(req, res, next, 'delete')) {
-                exported_classes_1.adminModel.delete(next, req.body.id).then(data => {
+                exported_classes_1.adminModel.delete(next, req.body).then(data => {
                     if (data) {
                         return res.status(200).json({
                             status: 1,
@@ -101,18 +104,16 @@ class AdminController {
     }
     changePassword(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.isThisAdminAllowed(req, res, next, 'update')) {
-                let { old_password, new_password } = req.body;
-                let adminData = yield exported_classes_1.adminModel.findOneWithFilter(next, { id: req.admin.id });
-                if (!adminData)
-                    return res.status(401).json({ status: -1, message: 'invalid credentials' });
-                if (exported_classes_1.auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: adminData.password })) {
-                    exported_classes_1.adminModel.update(next, { password: new_password, id: adminData.id }).then(response => {
-                        console.log(response);
-                        if (response)
-                            return res.status(200).json({ status: 1, data: response });
-                    });
-                }
+            let { old_password, new_password } = req.body;
+            let adminData = yield exported_classes_1.adminModel.findOneWithFilter(next, { id: req.admin.id });
+            if (!adminData)
+                return res.status(401).json({ status: -1, message: 'invalid credentials' });
+            if (exported_classes_1.auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: adminData.password })) {
+                exported_classes_1.adminModel.update(next, { password: new_password, id: adminData.id }).then(response => {
+                    console.log(response);
+                    if (response)
+                        return res.status(200).json({ status: 1, data: response });
+                });
             }
         });
     }

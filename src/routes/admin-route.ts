@@ -12,6 +12,7 @@ Router.get('/all', superAdminMiddleware, (req, res, next) => adminCtrl.allAdmins
 Router.get('/one/:id', superAdminMiddleware, (req, res, next) => adminCtrl.oneAdmin(req, res, next));
 Router.put('/self', adminMiddleware, validate(validator.updateAdmin), (req, res, next) => adminCtrl.update(req, res, next))
 Router.put('/super', superAdminMiddleware, validate(validator.updateAdminSuper), (req, res, next) => adminCtrl.updateSuper(req, res, next))
+Router.put('/password', adminMiddleware, validate(validator.updatePasswordStruct), (req, res, next) => adminCtrl.changePassword(req, res, next))
 Router.delete('/', superAdminMiddleware, validate(validator.deleteWithId), (req, res, next) => adminCtrl.delete(req, res, next))
 
 /* Get all agents on our system so far - User and Workers */

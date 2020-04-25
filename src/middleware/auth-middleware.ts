@@ -21,7 +21,6 @@ export const agentMiddleware = (req: any, res: any, next: any) => {
 export const newAgentMiddleware = async (req, res, next) => {
 	const { agent_id, token } = req.body;
 	const isTokenValid = await tokenModel.validateToken({ agent_id, token })
-	// console.table({	isTokenValid: isTokenValid})
 	req.agent = { id: agent_id, token }
 	if (isTokenValid) return next()
 	return res.status(401).json({ message: 'Invalid token provided.', status: -1})
@@ -48,7 +47,6 @@ export const workerMiddleware = (req: any, res: any, next: any) => {
 	if (!token) return res.status(401).json({ message: 'Access denied. Authorization Token not provided.', status: -1})
 	try {
 		const tokenDecoded = JWT.verify(token, jwtSecret)
-		console.table(tokenDecoded)
 		if (tokenDecoded.type === 'worker') {
 			req.agent = tokenDecoded
 			next()
@@ -65,7 +63,6 @@ export const adminMiddleware = (req: any, res: any, next: any) => {
 	if (!token) return res.status(401).json({ message: 'Access denied. Authorization Token not provided.', status: -1})
 	try {
 		const tokenDecoded = JWT.verify(token, jwtSecret)
-		console.table(tokenDecoded)
 		if (tokenDecoded.type === 'admin' || tokenDecoded.type === 'super') {
 			req.admin = tokenDecoded
 			next()
@@ -81,7 +78,6 @@ export const superAdminMiddleware = (req: any, res: any, next: any) => {
 	if (!token) return res.status(401).json({ message: 'Access denied. Authorization Token not provided.', status: -1})
 	try {
 		const tokenDecoded = JWT.verify(token, jwtSecret)
-		console.table(tokenDecoded)
 		if (tokenDecoded.type === 'super') {
 			req.admin = tokenDecoded
 			next()

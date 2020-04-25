@@ -15,6 +15,7 @@ Router.get('/all', auth_middleware_1.superAdminMiddleware, (req, res, next) => e
 Router.get('/one/:id', auth_middleware_1.superAdminMiddleware, (req, res, next) => exported_classes_1.adminCtrl.oneAdmin(req, res, next));
 Router.put('/self', auth_middleware_1.adminMiddleware, validate(exported_classes_1.validator.updateAdmin), (req, res, next) => exported_classes_1.adminCtrl.update(req, res, next));
 Router.put('/super', auth_middleware_1.superAdminMiddleware, validate(exported_classes_1.validator.updateAdminSuper), (req, res, next) => exported_classes_1.adminCtrl.updateSuper(req, res, next));
+Router.put('/password', auth_middleware_1.adminMiddleware, validate(exported_classes_1.validator.updatePasswordStruct), (req, res, next) => exported_classes_1.adminCtrl.changePassword(req, res, next));
 Router.delete('/', auth_middleware_1.superAdminMiddleware, validate(exported_classes_1.validator.deleteWithId), (req, res, next) => exported_classes_1.adminCtrl.delete(req, res, next));
 /* Get all agents on our system so far - User and Workers */
 Router.get('/agents', auth_middleware_1.adminMiddleware, (req, res, next) => exported_classes_1.agentCtrl.allAgents(req, res, next));

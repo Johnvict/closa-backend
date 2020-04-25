@@ -42,13 +42,12 @@ export class Validator {
 		type: Joi.alternatives(['admin', 'super'])
 	});
 	updateAdmin = Joi.object({
-		password: Joi.string().min(5).max(200),
 		phone: Joi.string().min(11).max(15),
-		username: Joi.string().min(3).max(25),
-		email: Joi.string().email().max(25),
 		dob: Joi.date(),
 		gender: Joi.alternatives(['male', 'female']),
-		type: Joi.alternatives(['admin', 'super'])
+		// username: Joi.string().min(3).max(25),
+		// email: Joi.string().email().max(25),
+		// type: Joi.alternatives(['admin', 'super'])
 	});
 
 

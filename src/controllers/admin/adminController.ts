@@ -27,10 +27,13 @@ export class AdminController {
 
 	async create(req, res, next) {
 		if (this.isThisAdminAllowed(req, res, next, 'create')) {
-			return res.status(201).json({
-				status: 1,
-				data: await adminModel.create(next, req.body)
-			})
+			const adminData = await adminModel.create(next, req.body);
+			if (adminData) {
+				return res.status(201).json({
+					status: 1,
+					data: adminData
+				})
+			}
 		}
 	}
 
@@ -53,7 +56,7 @@ export class AdminController {
 
 	async delete(req, res, next) {
 		if (this.isThisAdminAllowed(req, res, next, 'delete')) {
-			adminModel.delete(next, req.body.id).then( data => {
+			adminModel.delete(next, req.body).then(data => {
 				if (data) {
 					return res.status(200).json({
 						status: 1,
@@ -67,7 +70,7 @@ export class AdminController {
 	async login(req, res, next) {
 		const loginData = req.body;
 		const adminData = await adminModel.findOneWithFilter(next, { username: loginData.username })
-		if (!adminData) return res.status(401).json({ status: -1, message: 'invalid credentials'})
+		if (!adminData) return res.status(401).json({ status: -1, message: 'invalid credentials' })
 		if (adminData) {
 			if (await auth.comparePassword(next, { candidatePassword: loginData.password, hashedPassword: adminData.password })) {
 				res.status(200).json({
@@ -81,21 +84,19 @@ export class AdminController {
 	}
 
 	upDateLoginTime(next, id) {
-		adminModel.update(next, {lastLoginAt: new Date(Date.now()), id });
+		adminModel.update(next, { lastLoginAt: new Date(Date.now()), id });
 	}
 
 
 	async changePassword(req: any, res, next) {
-		if (this.isThisAdminAllowed(req, res, next, 'update')) {
-			let { old_password, new_password } = req.body;
-			let adminData = await adminModel.findOneWithFilter(next, { id: req.admin.id })
-			if (!adminData) return res.status(401).json({ status: -1, message: 'invalid credentials'})
-			if (auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: adminData.password })) {
-				adminModel.update(next, { password: new_password, id: adminData.id}).then(response => {
-					console.log(response)
-					if (response) return res.status(200).json({ status: 1, data: response });
-				})
-			}
+		let { old_password, new_password } = req.body;
+		let adminData = await adminModel.findOneWithFilter(next, { id: req.admin.id })
+		if (!adminData) return res.status(401).json({ status: -1, message: 'invalid credentials' })
+		if (auth.comparePassword(next, { candidatePassword: old_password, hashedPassword: adminData.password })) {
+			adminModel.update(next, { password: new_password, id: adminData.id }).then(response => {
+				console.log(response)
+				if (response) return res.status(200).json({ status: 1, data: response });
+			})
 		}
 	}
 
@@ -106,7 +107,7 @@ export class AdminController {
 				return next(new AppError(`Access denied, you are not allowed to ${action} this account`, 401, -1));
 			}
 		} else {
-			if(req.body.id !== thisLogedInId && req.admin.type !== 'super') return next(new AppError(`Access denied, you are not allowed to ${action} this account`, 401, -1));
+			if (req.body.id !== thisLogedInId && req.admin.type !== 'super') return next(new AppError(`Access denied, you are not allowed to ${action} this account`, 401, -1));
 		}
 		return true
 	}
@@ -116,39 +117,39 @@ export class AdminController {
 		states.forEach(async state => {
 			await stateModel.create(next, state)
 		});
-		return res.status(201).json({status: 1, data: await stateModel.getAll() });
+		return res.status(201).json({ status: 1, data: await stateModel.getAll() });
 	}
 	async createManyTowns(req, res, next) {
 		const towns: NewUpdateTown[] = req.body;
 		towns.forEach(async town => {
 			await townModel.create(next, town)
 		});
-		return res.status(201).json({status: 1, data: await townModel.getAll() });
+		return res.status(201).json({ status: 1, data: await townModel.getAll() });
 	}
 
 	async createState(req, res, next) {
 		const state = await stateModel.create(next, req.body.state)
 		return state ?
-		res.status(201).json({status: 1, data: await state }) :
-		res.status(201).json({status: -1, message: 'error creating state' })
+			res.status(201).json({ status: 1, data: await state }) :
+			res.status(201).json({ status: -1, message: 'error creating state' })
 	}
 	async createTown(req, res, next) {
 		const town = await townModel.create(next, req.body.town)
 		return town ?
-		res.status(201).json({status: 1, data: await town }) :
-		res.status(201).json({status: -1, message: 'error creating town' })
+			res.status(201).json({ status: 1, data: await town }) :
+			res.status(201).json({ status: -1, message: 'error creating town' })
 	}
 
 
 	async updateState(req, res, next) {
-		stateModel.update(next, req.body).then( data => {
+		stateModel.update(next, req.body).then(data => {
 			if (data) {
 				return res.status(200).json({ status: 1, data: data })
 			}
 		})
 	}
 	async updateTown(req, res, next) {
-		townModel.update(next, req.body).then( data => {
+		townModel.update(next, req.body).then(data => {
 			if (data) {
 				return res.status(200).json({ status: 1, data })
 			}
@@ -156,7 +157,7 @@ export class AdminController {
 	}
 
 	async deleteState(req, res, next) {
-		stateModel.delete(next, req.body).then( data => {
+		stateModel.delete(next, req.body).then(data => {
 			if (data) {
 				return res.status(200).json({ status: 1, data: data })
 			}
@@ -164,7 +165,7 @@ export class AdminController {
 	}
 
 	async deleteTown(req, res, next) {
-		townModel.delete(next, req.body).then( data => {
+		townModel.delete(next, req.body).then(data => {
 			if (data) {
 				return res.status(200).json({ status: 1, data: data })
 			}
