@@ -77,10 +77,10 @@ export class AgentModel {
 	}
 
 
-	async getOne(next, id: number): Promise<Agent> {
+	async getOne(next, id: number, fromAdmin?: boolean): Promise<Agent> {
 		try {
 			const data = await DbModel.Agent.findByPk(id, { include: this.agentRelations });
-			return data ? data : next(new AppError('no account found with this credential', 500))
+			return data ? data : next(fromAdmin ? new AppError('no account found with this credential', 400, -1) : new AppError('no account found with this credential', 500))
 		} catch (err) {
 			return next(err.message)
 		}

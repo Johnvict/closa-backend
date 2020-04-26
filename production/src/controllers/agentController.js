@@ -18,6 +18,17 @@ class AgentController {
             return res.status(200).json(Object.assign({ status: 1 }, agents));
         });
     }
+    oneAgent(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const agent = yield exported_classes_1.agentModel.getOne(next, req.params.id, true);
+            if (agent) {
+                return res.status(200).json({
+                    status: 1,
+                    data: agent
+                });
+            }
+        });
+    }
     allAgentsMore(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const agents = yield exported_classes_1.agentModel.getAllMore(req.body);

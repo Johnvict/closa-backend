@@ -11,6 +11,15 @@ export class AgentController {
 			...agents
 		})
 	}
+	async oneAgent(req, res, next) {
+		const agent = await agentModel.getOne(next, req.params.id, true)
+		if (agent) {
+			return res.status(200).json({
+				status: 1,
+				data: agent
+			})
+		}
+	}
 	async allAgentsMore(req, res, next) {
 		const agents = await agentModel.getAllMore(req.body)
 		return res.status(200).json({

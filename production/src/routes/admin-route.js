@@ -19,12 +19,14 @@ Router.put('/password', auth_middleware_1.adminMiddleware, validate(exported_cla
 Router.delete('/', auth_middleware_1.superAdminMiddleware, validate(exported_classes_1.validator.deleteWithId), (req, res, next) => exported_classes_1.adminCtrl.delete(req, res, next));
 /* Get all agents on our system so far - User and Workers */
 Router.get('/agents', auth_middleware_1.adminMiddleware, (req, res, next) => exported_classes_1.agentCtrl.allAgents(req, res, next));
+/* Get one agent on our system so far - User and Workers */
+Router.get('/agents/one/:id', auth_middleware_1.adminMiddleware, (req, res, next) => exported_classes_1.agentCtrl.oneAgent(req, res, next));
 /* Load more - All agents on our system so far - User and Workers */
 Router.post('/agents-more', auth_middleware_1.adminMiddleware, validate(exported_classes_1.validator.allLoadMore), (req, res, next) => exported_classes_1.agentCtrl.allAgentsMore(req, res, next));
 /** All the jobs so far on our app */
 Router.get('/jobs', auth_middleware_1.adminMiddleware, (req, res, next) => exported_classes_1.jobCtrl.getAllJobsForAdmin(req, res, next));
 /** Load more - All the jobs so far on our app */
-Router.post('/jobs-more', validate(exported_classes_1.validator.allLoadMore), (req, res, next) => exported_classes_1.jobCtrl.getAllJobsMoreForAdmin(req, res, next));
+Router.post('/jobs-more', auth_middleware_1.adminMiddleware, validate(exported_classes_1.validator.allLoadMore), (req, res, next) => exported_classes_1.jobCtrl.getAllJobsMoreForAdmin(req, res, next));
 /** Get all jobs from a particular state or town with date range */
 Router.post('/job-chart', auth_middleware_1.adminMiddleware, validate(exported_classes_1.validator.jobsByStatusFrom), (req, res, next) => exported_classes_1.jobCtrl.jobsByStatusFromStateOrTownForAdmin(req, res, next));
 /** Get a particular job type from a particular state or town with date range */

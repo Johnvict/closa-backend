@@ -18,6 +18,9 @@ Router.delete('/', superAdminMiddleware, validate(validator.deleteWithId), (req,
 /* Get all agents on our system so far - User and Workers */
 Router.get('/agents', adminMiddleware, (req, res, next) => agentCtrl.allAgents(req, res, next))
 
+/* Get one agent on our system so far - User and Workers */
+Router.get('/agents/one/:id', adminMiddleware, (req, res, next) => agentCtrl.oneAgent(req, res, next))
+
 /* Load more - All agents on our system so far - User and Workers */
 Router.post('/agents-more', adminMiddleware,  validate(validator.allLoadMore), (req, res, next) => agentCtrl.allAgentsMore(req, res, next))
 
@@ -25,7 +28,7 @@ Router.post('/agents-more', adminMiddleware,  validate(validator.allLoadMore), (
 Router.get('/jobs', adminMiddleware, (req, res, next) => jobCtrl.getAllJobsForAdmin(req, res, next))
 
 /** Load more - All the jobs so far on our app */
-Router.post('/jobs-more', validate(validator.allLoadMore), (req, res, next) => jobCtrl.getAllJobsMoreForAdmin(req, res, next))
+Router.post('/jobs-more', adminMiddleware, validate(validator.allLoadMore), (req, res, next) => jobCtrl.getAllJobsMoreForAdmin(req, res, next))
 
 /** Get all jobs from a particular state or town with date range */
 Router.post('/job-chart', adminMiddleware, validate(validator.jobsByStatusFrom), (req, res, next) => jobCtrl.jobsByStatusFromStateOrTownForAdmin(req, res, next))

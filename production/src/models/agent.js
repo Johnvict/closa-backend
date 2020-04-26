@@ -82,11 +82,11 @@ class AgentModel {
             };
         });
     }
-    getOne(next, id) {
+    getOne(next, id, fromAdmin) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const data = yield exported_classes_1.DbModel.Agent.findByPk(id, { include: this.agentRelations });
-                return data ? data : next(new exported_classes_1.AppError('no account found with this credential', 500));
+                return data ? data : next(fromAdmin ? new exported_classes_1.AppError('no account found with this credential', 400, -1) : new exported_classes_1.AppError('no account found with this credential', 500));
             }
             catch (err) {
                 return next(err.message);
