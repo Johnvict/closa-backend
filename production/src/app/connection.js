@@ -32,7 +32,7 @@ sequelize.authenticate().then(() => {
     console.error('FATAL ERROR, Unable to connect to the DB:', err);
     process.exit(1);
 });
-app.use(express_1.default.static(`${__dirname}/../../public`));
+app.use(express_1.default.static(`${__dirname}/../../../public`));
 // app.use(express.static(`${__dirname}/public`))
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");

@@ -79,6 +79,10 @@ export interface Agent extends Regular {
 	profile?: UserStruct;
 	business?: WorkerStruct;
 	search_histories?: SearchHistory[];
+	rating?: {
+		total: number;
+		average: number;
+	}
 }
 export interface NewUser {
 	agent_id: number;

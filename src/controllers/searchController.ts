@@ -42,8 +42,6 @@ export class SearchController {
 		}
 		const response = await apiCaller(request)
 		if (response.error) return res.json(response.error)
-		console.log(response.data);
-		console.log(response.error);
 		res.status(200).send({
 			status: response.data.status,
 			data: await this.sortComputeRating(response.data.data, req.body.my_lat, req.body.my_long)
@@ -65,11 +63,11 @@ export class SearchController {
 						distance: distanceCalculator(dataObj.agent.location.lat, dataObj.agent.location.long, my_lat, my_long, 'K')
 					}
 				} else if (key === "worker_jobs") {
-					const total_rating_points = dataObj.agent.worker_jobs.reduce((sum, val) => ((val.rating * 5) + sum), 0)
-					const total_rating_available = dataObj.agent.worker_jobs.length
+					const total_rating_points = dataObj.agent.worker_jobs.reduce((sum, val) => (val.rating + sum), 0)
+					const total_rating_available = dataObj.agent.worker_jobs.filter(val => val.rating > 0).length
 					const total_obtainable_rating = total_rating_available * 5
-					const average_raiting_obtained = total_rating_points/total_obtainable_rating
-					newObj['rating'] = { total: total_rating_available, average: average_raiting_obtained }
+					const average_raiting_obtained = total_obtainable_rating == 0 ? 0 :	 (total_rating_points/total_obtainable_rating) * 5
+					newObj['rating'] = { total: total_rating_available, average: Number(average_raiting_obtained.toFixed(2)) }
 				} else {
 					newObj[key] = dataObj.agent[key]
 				}
