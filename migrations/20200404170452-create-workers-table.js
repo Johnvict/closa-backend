@@ -34,7 +34,7 @@ module.exports = {
       },
       logo: {
         type: Sequelize.STRING(),
-        defaultValue: 'logo.jpg'
+        defaultValue: 'img/logo/logo.jpg'
       },
       status: {
         type: Sequelize.Sequelize.ENUM(["available", "away"]),

@@ -9,6 +9,20 @@ class Agent extends Model {
         for (let a of PROTECTED_FIELDS) {
             delete attributes[a];
         }
+        if (attributes["worker_jobs"]) {
+            const total_rating_points = attributes["worker_jobs"].reduce((sum, val) => ((Number(val.rating) > 0 ? Number(val.rating) : 0) + sum), 0);
+            const total_rating_available = attributes["worker_jobs"].filter(val => val.rating > 0).length;
+            const total_obtainable_rating = total_rating_available * 5;
+            const average_raiting_obtained = total_obtainable_rating == 0 ? 0 : (total_rating_points / total_obtainable_rating) * 5;
+            attributes['rating'] = { total: total_rating_available, average: Number(average_raiting_obtained.toFixed(2)) };
+            console.table({
+                TotalRatingTimes: total_rating_available,
+                TotalRatingObtainable: total_obtainable_rating,
+                TotalRatingPoints: total_rating_points,
+                NoOfJobsWithDot: attributes.worker_jobs.length,
+                NoOfJobs: attributes["worker_jobs"].length
+            });
+        }
         return attributes;
     }
 }

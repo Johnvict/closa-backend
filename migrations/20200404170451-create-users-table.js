@@ -18,7 +18,7 @@ module.exports = {
 	  },
 	  avatar: {
 		type: Sequelize.STRING(),
-		defaultValue: "avatar.jpg"
+		defaultValue: "img/avatar/avatar.jpg"
 	  },
       name: {
         type: Sequelize.STRING(30),
