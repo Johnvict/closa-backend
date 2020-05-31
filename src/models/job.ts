@@ -1,8 +1,11 @@
 import { GenericObject, Job, NewJob, UpdateJob, JobByStatusFromStateOrTown } from './../misc/structs';
 import { DbModel, AppError, formatIntoRegExQueryArray } from './../app/exported.classes';
 
-import * as sequelize from 'sequelize'
-const Op = sequelize.Op;
+// import * as sequelize from 'sequelize'
+// const Op = sequelize.Op;
+
+import { Op, Sequelize } from 'sequelize';  
+import sequelize from 'sequelize';
 
 export class JobModel {
 	constructor() { }

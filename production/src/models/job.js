@@ -8,17 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
-const sequelize = __importStar(require("sequelize"));
-const Op = sequelize.Op;
+// import * as sequelize from 'sequelize'
+// const Op = sequelize.Op;
+const sequelize_1 = require("sequelize");
+const sequelize_2 = __importDefault(require("sequelize"));
 class JobModel {
     constructor() {
         this.jobRelations = [this.getUserWorkerRelation('user'), this.getUserWorkerRelation('worker')];
@@ -39,10 +37,10 @@ class JobModel {
     }
     create(next, newJob) {
         return __awaiter(this, void 0, void 0, function* () {
-            const titleQueryCaseInsensitive = sequelize.where(sequelize.fn('LOWER', sequelize.col('title')), 'LIKE', `%${newJob.title}%`);
+            const titleQueryCaseInsensitive = sequelize_2.default.where(sequelize_2.default.fn('LOWER', sequelize_2.default.col('title')), 'LIKE', `%${newJob.title}%`);
             const [job, created] = yield exported_classes_1.DbModel.Job.findOrCreate({
                 where: {
-                    [Op.and]: [
+                    [sequelize_1.Op.and]: [
                         { worker_id: newJob.worker_id },
                         { user_id: newJob.user_id },
                         titleQueryCaseInsensitive,
@@ -90,10 +88,10 @@ class JobModel {
         return __awaiter(this, void 0, void 0, function* () {
             return exported_classes_1.DbModel.Job.findAndCountAll({
                 where: {
-                    [Op.and]: [
+                    [sequelize_1.Op.and]: [
                         { worker_id: query.worker_id },
                         { user_id: query.user_id },
-                        { status: { [Op.ne]: 'cancelled' } }
+                        { status: { [sequelize_1.Op.ne]: 'cancelled' } }
                     ]
                 },
                 order: [['updatedAt', 'desc']],
@@ -130,9 +128,9 @@ class JobModel {
             const sort = filter.sort ? filter.sort : 'desc';
             return exported_classes_1.DbModel.Job.findAndCountAll({
                 where: {
-                    [Op.and]: [
-                        { createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] } },
-                        { title: { [Op.or]: filterArg } }
+                    [sequelize_1.Op.and]: [
+                        { createdAt: { [sequelize_1.Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] } },
+                        { title: { [sequelize_1.Op.or]: filterArg } }
                     ]
                 },
                 include: {
@@ -140,7 +138,7 @@ class JobModel {
                     required: filter.state_or_town == 'all' ? false : true,
                     include: {
                         model: exported_classes_1.DbModel.Location, as: 'location', required: true,
-                        where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [Op.gt]: 0 } : filter.state_or_town_id }
+                        where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [sequelize_1.Op.gt]: 0 } : filter.state_or_town_id }
                     }
                 },
                 order: [['updatedAt', sort]],
@@ -172,14 +170,14 @@ class JobModel {
         const sort = filter.sort ? filter.sort : 'desc';
         return exported_classes_1.DbModel.Job.findAndCountAll({
             where: {
-                createdAt: { [Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] },
+                createdAt: { [sequelize_1.Op.between]: [filter.start_range ? filter.start_range : 0, filter.end_range ? filter.end_range : Date.now()] },
             },
             include: {
                 model: exported_classes_1.DbModel.Agent, as: 'worker',
                 required: filter.state_or_town == 'all' ? false : true,
                 include: {
                     model: exported_classes_1.DbModel.Location, as: 'location', required: true,
-                    where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [Op.gt]: 0 } : filter.state_or_town_id }
+                    where: { [filter.state_or_town == 'all' ? 'state_id' : `${filter.state_or_town}_id`]: filter.state_or_town == 'all' ? { [sequelize_1.Op.gt]: 0 } : filter.state_or_town_id }
                 }
             },
             order: [['updatedAt', sort]],

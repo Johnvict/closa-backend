@@ -2,7 +2,9 @@ import { AppError } from './../misc/app.error';
 import { JobSample, NewJobSample, GenericObject, FileStruct, NewFileStruct } from "./../misc/structs"
 import { DbModel } from './../app/exported.classes'
 
-const Op = require('sequelize').Op;
+// const Op = require('sequelize').Op;
+import { Op, Sequelize } from 'sequelize';  
+import sequelize from 'sequelize';
 
 export class JobSampleModel {
 	constructor() { }

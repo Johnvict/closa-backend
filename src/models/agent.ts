@@ -2,7 +2,9 @@ import { NewAgent, NewPhone, Agent, UpdateAgent, NewToken } from './../misc/stru
 import { GenericObject, UserStruct } from "../misc/structs"
 import { auth, DbModel, AppError, tokenModel } from './../app/exported.classes'
 
-const Op = require('sequelize').Op;
+// const Op = require('sequelize').Op;
+import { Op, Sequelize } from 'sequelize';  
+import sequelize from 'sequelize';
 
 export class AgentModel {
 	duplicateExist = false;

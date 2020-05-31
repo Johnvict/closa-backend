@@ -11,7 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const app_error_1 = require("./../misc/app.error");
 const exported_classes_1 = require("./../app/exported.classes");
-const Op = require('sequelize').Op;
+// const Op = require('sequelize').Op;
+const sequelize_1 = require("sequelize");
 class JobSampleModel {
     constructor() {
         this.jobSampleRelation = [
@@ -21,7 +22,7 @@ class JobSampleModel {
     create(next, newSample) {
         return __awaiter(this, void 0, void 0, function* () {
             return exported_classes_1.DbModel.JobSample.findOrCreate({
-                where: { [Op.and]: [{ worker_id: newSample.worker_id }, { title: newSample.title }] },
+                where: { [sequelize_1.Op.and]: [{ worker_id: newSample.worker_id }, { title: newSample.title }] },
                 defaults: { date_done: newSample.date_done, title: newSample.title, worker_id: newSample.worker_id }
             }).then((queryRes) => __awaiter(this, void 0, void 0, function* () {
                 if (queryRes[1]) {
@@ -41,7 +42,7 @@ class JobSampleModel {
     createFile(newFile) {
         return __awaiter(this, void 0, void 0, function* () {
             return exported_classes_1.DbModel.File.findOrCreate({
-                where: { [Op.and]: [{ job_sample_id: newFile.job_sample_id }, { name: newFile.name }] },
+                where: { [sequelize_1.Op.and]: [{ job_sample_id: newFile.job_sample_id }, { name: newFile.name }] },
                 defaults: newFile
             }).catch(e => console.log(e));
         });

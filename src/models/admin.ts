@@ -1,9 +1,12 @@
 import { GenericObject, Admin, NewAdmin, UpdateAdmin } from './../misc/structs';
 import { DbModel, AppError, auth } from './../app/exported.classes';
-import { Sequelize } from '../../models';
-const sequelize = require("sequelize");
 
-const Op = require('sequelize').Op;
+// import { Sequelize } from '../../models';
+// const sequelize = require("sequelize");
+// const Op = require('sequelize').Op;
+
+import { Op, Sequelize } from 'sequelize';  
+import sequelize from 'sequelize';
 
 export class AdminModel {
 	constructor() { }

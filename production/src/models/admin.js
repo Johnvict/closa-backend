@@ -10,8 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
-const sequelize = require("sequelize");
-const Op = require('sequelize').Op;
+// import { Sequelize } from '../../models';
+// const sequelize = require("sequelize");
+// const Op = require('sequelize').Op;
+const sequelize_1 = require("sequelize");
 class AdminModel {
     constructor() { }
     create(next, newAdmin) {
@@ -25,7 +27,7 @@ class AdminModel {
                 }
             }
             const [admin, created] = yield exported_classes_1.DbModel.Admin.findOrCreate({
-                where: { [Op.or]: [{ username: newAdmin.username }, { phone: newAdmin.phone }, { email: newAdmin.email }] },
+                where: { [sequelize_1.Op.or]: [{ username: newAdmin.username }, { phone: newAdmin.phone }, { email: newAdmin.email }] },
                 defaults: newAdmin
             });
             if (created)
@@ -81,7 +83,7 @@ class AdminModel {
     checkUniquenessExistence(value, key, id) {
         return __awaiter(this, void 0, void 0, function* () {
             const admin = id
-                ? yield exported_classes_1.DbModel.Admin.findOne({ where: { [Op.and]: [{ [key]: value }, { id: { [Op.ne]: id } }] } })
+                ? yield exported_classes_1.DbModel.Admin.findOne({ where: { [sequelize_1.Op.and]: [{ [key]: value }, { id: { [sequelize_1.Op.ne]: id } }] } })
                 : yield exported_classes_1.DbModel.Admin.findOne({ where: { [key]: value } });
             return admin ? true : false;
         });

@@ -1,7 +1,10 @@
 import { NewWorker, GenericObject, WorkerStruct, UpdateWorker } from "./../misc/structs"
 import { DbModel } from './../app/exported.classes'
 
-const Op = require('sequelize').Op;
+// const Op = require('sequelize').Op;
+
+import { Op, Sequelize } from 'sequelize';  
+import sequelize from 'sequelize';
 
 export class WorkerModel {
 	constructor() { }

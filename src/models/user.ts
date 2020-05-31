@@ -1,7 +1,10 @@
 import { GenericObject, UserStruct, NewUser, UpdateUser } from './../misc/structs';
 import { DbModel, AppError } from './../app/exported.classes'
 
-const Op = require('sequelize').Op;
+// const Op = require('sequelize').Op;
+
+import { Op, Sequelize } from 'sequelize';  
+import sequelize from 'sequelize';
 
 export class UserModel {
 	constructor() { }

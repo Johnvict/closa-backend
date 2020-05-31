@@ -1,8 +1,11 @@
 import { GenericObject, NewUpdateTown, Town } from './../misc/structs';
 import { DbModel, AppError } from './../app/exported.classes';
-const sequelize = require("sequelize");
 
-const Op = require('sequelize').Op;
+// const sequelize = require("sequelize");
+// const Op = require('sequelize').Op;
+
+import { Op, Sequelize } from 'sequelize';  
+import sequelize from 'sequelize';
 
 export class TownModel {
 	constructor() { }

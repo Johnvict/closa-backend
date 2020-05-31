@@ -10,13 +10,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
-const Op = require('sequelize').Op;
+// const Op = require('sequelize').Op;
+const sequelize_1 = require("sequelize");
 class WorkerModel {
     constructor() { }
     create(newWorker) {
         return __awaiter(this, void 0, void 0, function* () {
             return exported_classes_1.DbModel.Worker.findOrCreate({
-                where: { [Op.or]: [{ agent_id: newWorker.agent_id }] },
+                where: { [sequelize_1.Op.or]: [{ agent_id: newWorker.agent_id }] },
                 defaults: newWorker
             }).then((queryRes) => __awaiter(this, void 0, void 0, function* () {
                 if (queryRes[1])

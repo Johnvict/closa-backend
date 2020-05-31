@@ -10,7 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
-const Op = require('sequelize').Op;
+// const Op = require('sequelize').Op;
+const sequelize_1 = require("sequelize");
 class AgentModel {
     constructor() {
         this.duplicateExist = false;
@@ -53,7 +54,7 @@ class AgentModel {
     createAgent(next, newAgent) {
         return __awaiter(this, void 0, void 0, function* () {
             return exported_classes_1.DbModel.Agent.findOrCreate({
-                where: { [Op.or]: [{ phone: newAgent.phone }] },
+                where: { [sequelize_1.Op.or]: [{ phone: newAgent.phone }] },
                 defaults: newAgent
             }).then((queryRes) => __awaiter(this, void 0, void 0, function* () {
                 const token = yield this.generateToken(queryRes[0].id);
@@ -146,7 +147,7 @@ class AgentModel {
     }
     checkDuplicate(value, key, id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const agent = yield exported_classes_1.DbModel.Agent.findOne({ where: { [Op.and]: [{ [key]: value }, { id: { [Op.ne]: id } }] } });
+            const agent = yield exported_classes_1.DbModel.Agent.findOne({ where: { [sequelize_1.Op.and]: [{ [key]: value }, { id: { [sequelize_1.Op.ne]: id } }] } });
             return agent ? true : false;
         });
     }
@@ -166,7 +167,7 @@ class AgentModel {
             let data; // exist;
             const getAgentData = () => __awaiter(this, void 0, void 0, function* () {
                 if (isToken) {
-                    data = yield this.findOneWithFilter(next, { [Op.and]: [{ phone: agent.phone }, { id }] });
+                    data = yield this.findOneWithFilter(next, { [sequelize_1.Op.and]: [{ phone: agent.phone }, { id }] });
                     // exist = data.password ? true : false;
                     if (!data)
                         return next(new exported_classes_1.AppError('Invalid credentials submitted', 400, -1));

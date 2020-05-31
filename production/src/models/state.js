@@ -8,10 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const exported_classes_1 = require("./../app/exported.classes");
-const sequelize = require("sequelize");
-const Op = require('sequelize').Op;
+// const sequelize = require("sequelize");
+// const Op = require('sequelize').Op;
+const sequelize_1 = require("sequelize");
+const sequelize_2 = __importDefault(require("sequelize"));
 class StateModel {
     constructor() {
         this.stateRelations = { model: exported_classes_1.DbModel.Town, as: 'towns' };
@@ -19,7 +24,7 @@ class StateModel {
     create(next, newState) {
         return __awaiter(this, void 0, void 0, function* () {
             const [state, created] = yield exported_classes_1.DbModel.State.findOrCreate({
-                where: { [Op.or]: [{ name: newState.name }] },
+                where: { [sequelize_1.Op.or]: [{ name: newState.name }] },
                 defaults: newState
             });
             if (created)
@@ -29,10 +34,10 @@ class StateModel {
     }
     ifStateExists(next, newState) {
         return __awaiter(this, void 0, void 0, function* () {
-            const withCaseInsensitive = sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), 'LIKE', `%${newState.name}%`);
+            const withCaseInsensitive = sequelize_2.default.where(sequelize_2.default.fn('LOWER', sequelize_2.default.col('name')), 'LIKE', `%${newState.name}%`);
             const { count, rows } = yield exported_classes_1.DbModel.State.findAndCountAll({
                 where: {
-                    [Op.and]: [
+                    [sequelize_1.Op.and]: [
                         { name: withCaseInsensitive },
                     ]
                 },
