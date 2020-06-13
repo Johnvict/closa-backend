@@ -38,6 +38,9 @@ export class UserModel {
 
 	async update(next, user: UpdateUser): Promise<UserStruct> {
 		const dataToStore = this.whatToUpdate(user);
+		console.log('\n\n\n\n\n DATA TO STORE',);
+		console.table(dataToStore);
+		console.log('\n\n\n\n\n DATA TO STORE',);
 		return DbModel.User.update(dataToStore, { returning: true, where: { agent_id: user.agent_id } })
 			.then(async _ => {
 				return await this.findOneWithFilter(next, {agent_id: user.agent_id});

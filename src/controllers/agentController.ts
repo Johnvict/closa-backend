@@ -32,9 +32,11 @@ export class AgentController {
 	async create(req, res, next) {
 		const newAgent = await agentModel.createAgent(next, req.body);
 		if (newAgent) {
+			const agent = await agentModel.authAgent(req.agent.id);
 			return res.status(201).json({
 				status: 1,
-				...newAgent
+				...newAgent,
+				agent
 			})
 		}
 	}
@@ -43,8 +45,9 @@ export class AgentController {
 	async update(req, res, next) {
 		const id = req.agent.id;		// ? Do not worry, newAgentMiddleware added the agent->id already
 		const isToken = req.body.token;
-		agentModel.update(next, { ...req.body }, isToken, id).then(response => {
-			if (response) return res.status(200).json({ status: 1, data: response })
+		agentModel.update(next, { ...req.body }, isToken, id).then(async response => {
+			const agent = await agentModel.authAgent(id);
+			if (response) return res.status(200).json({ status: 1, data: response, agent })
 		})
 	}
 

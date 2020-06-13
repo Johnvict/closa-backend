@@ -68,7 +68,7 @@ export class Validator {
 		lat: Joi.string().required(),
 		long: Joi.string().required(),
 		name: Joi.string().max(100).required(),
-		image: Joi.string(),
+		image: Joi.string().required(),
 		state_id: Joi.number().required(),
 		town_id: Joi.number()
 	});

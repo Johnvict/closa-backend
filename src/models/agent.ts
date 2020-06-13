@@ -88,6 +88,17 @@ export class AgentModel {
 		}
 	}
 
+	async authAgent(id: number): Promise<Agent | any> {
+		try {
+			const data = await DbModel.Agent.findByPk(id, { include: this.agentRelations });
+			return data
+		} catch (err) {
+			// log Error
+			// return next(err.message)
+			return
+		}
+	}
+
 	async getAll(next): Promise<Agent[]> {
 		return DbModel.Agent.findAndCountAll({ order: [['updatedAt', 'DESC']], limit: 20, include: this.agentRelations }).then( result => {
 			const isLastPageNoMore = result.count >= 20 ? false : true;

@@ -9,6 +9,7 @@ import sequelize from 'sequelize';
 
 export class TownModel {
 	constructor() { }
+
 	townRelations = { model: DbModel.State, as: 'state' }
 	async create(next, newTown: NewUpdateTown): Promise<Town> {
 		// const existed: Town = await this.ifTownExists(next, newTown);
@@ -61,6 +62,10 @@ export class TownModel {
 
 	async findOneWithFilter(next, filterArgs: GenericObject): Promise<Town> {
 		const town = await DbModel.Town.findOne({ where: filterArgs })
+		return town ? town : next(new AppError('no town data found with this credential', 400, -1))
+	}
+	async findManyWithFilter(next, filterArgs: GenericObject): Promise<Town> {
+		const town = await DbModel.Town.findAll({ where: filterArgs })
 		return town ? town : next(new AppError('no town data found with this credential', 400, -1))
 	}
 

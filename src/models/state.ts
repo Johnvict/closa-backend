@@ -10,7 +10,7 @@ import sequelize from 'sequelize';
 export class StateModel {
 	constructor() { }
 
-	stateRelations = { model: DbModel.Town, as: 'towns' }
+	stateRelations = { model: DbModel.Town, as: 'towns', attributes: ['id', 'name', 'lat', 'long'] }
 	async create(next, newState: NewUpdateState): Promise<State> {
 		const [state, created] = await DbModel.State.findOrCreate({
 			where: { [Op.or]: [{ name: newState.name }] },
@@ -41,7 +41,11 @@ export class StateModel {
 	}
 	
 	async getAll(): Promise<State> {
-		return await DbModel.State.findAll({ include: this.stateRelations });
+		return await DbModel.State.findAll({ include: this.stateRelations, attributes: ['id', 'name'] });
+	}
+
+	async getAllWithoutRelation(): Promise<State> {
+		return await DbModel.State.findAll({ attributes: ['id', 'name']});
 	}
 
 	async delete(next, id: number): Promise<any> {
