@@ -1,0 +1,60 @@
+{"message":"6:59:47 PM: no account found with this credential","level":"info"}
+{"message":"7:02:09 PM: no account found with this credential","level":"info"}
+{"message":"7:04:40 PM: no account found with this credential","level":"info"}
+{"message":"7:05:39 PM: no account found with this credential","level":"error"}
+{"message":"7:08:11 PM: no account found with this credential","level":"error"}
+undefined
+{"message":"7:40:00 PM: no account found with this credential","level":"error"}
+{"message":"7:40:08 PM: no account found with this credential","level":"error"}
+
+
+var http = require('http');
+var server = http.createServer(function(req, res) {
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    var message = 'It works!\n',
+        version = 'NodeJS ' + process.versions.node + '\n',
+        response = [message, version].join('\n');
+    res.end(response);
+});
+server.listen();
+
+
+
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "dev": "nodemon --exec ts-node src/index.ts"
+  },
+
+
+
+npm WARN lifecycle The node binary used for scripts is /home/afrikxhz/nodevenv/afriworka/api/v1/10/bin/node but npm is using /opt/alt/alt-nodejs10/root/usr/bin/node itself. Use the `--scripts-prepend-node-path` option to include the path for the node binary npm was executed with.
+ERR! sharp Use with glibc 2.12 requires manual installation of libvips >= 8.9.1
+info sharp Attempting to build from source via node-gyp but this may fail due to the above error
+info sharp Please see https://sharp.pixelplumbing.com/install for required dependencies
+make: execvp: cc: Permission denied
+make: *** [Release/obj.target/nothing/node_modules/node-addon-api/nothing.o] Error 127
+gyp ERR! build error 
+gyp ERR! stack Error: `make` failed with exit code: 2
+gyp ERR! stack     at ChildProcess.onExit (/opt/alt/alt-nodejs10/root/usr/lib/node_modules/npm/node_modules.bundled/node-gyp/lib/build.js:191:23)
+gyp ERR! stack     at ChildProcess.emit (events.js:198:13)
+gyp ERR! stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:248:12)
+gyp ERR! System Linux 2.6.32-954.3.5.lve1.4.72.el6.x86_64
+gyp ERR! command "/opt/alt/alt-nodejs10/root/usr/bin/node" "/opt/alt/alt-nodejs10/root/usr/lib/node_modules/npm/node_modules.bundled/node-gyp/bin/node-gyp.js" "rebuild"
+gyp ERR! cwd /home/afrikxhz/nodevenv/afriworka/api/v1/10/lib/node_modules/sharp
+gyp ERR! node -v v10.20.1
+gyp ERR! node-gyp -v v5.1.0
+gyp ERR! not ok 
+npm WARN next@1.0.0 No repository field.
+
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! sharp@0.25.4 install: `(node install/libvips && node install/dll-copy && prebuild-install --runtime=napi) || (node-gyp rebuild && node install/dll-copy)`
+npm ERR! Exit status 1
+npm ERR! 
+npm ERR! Failed at the sharp@0.25.4 install script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     /home/afrikxhz/.npm/_logs/2020-06-19T12_16_36_324Z-debug.log
+ 

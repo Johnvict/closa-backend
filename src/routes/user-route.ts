@@ -9,6 +9,7 @@ const validate = validator.validate;
 Router.post('/', userMiddleware, validate(validator.newUser), (req, res, next) => userCtrl.create(req, res, next))
 
 /* Update user */
-Router.put('/', userMiddleware, validate(validator.updateUser), fileCtrl.uploadFile('avatar'), fileCtrl.resizeAvatar, (req, res, next) => userCtrl.update(req, res, next))
+// Router.put('/', userMiddleware, validate(validator.updateUser), fileCtrl.uploadFile('avatar'), fileCtrl.resizeAvatar, (req, res, next) => userCtrl.update(req, res, next))
+Router.put('/', userMiddleware, validate(validator.updateUser), fileCtrl.uploadFile('avatar'), (req, res, next) => userCtrl.update(req, res, next))
 
 module.exports = Router

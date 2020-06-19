@@ -30,13 +30,21 @@ export class AgentController {
 
 
 	async create(req, res, next) {
-		const newAgent = await agentModel.createAgent(next, req.body);
+		const newAgent = await agentModel.createAgent(req.body, res, next);
+		console.log(`\n\n\n`, newAgent, `\n\n\n`);
 		if (newAgent) {
-			const agent = await agentModel.authAgent(req.agent.id);
+			if (req.agent) {
+				const agent = await agentModel.authAgent(req.agent.id);
+				return res.status(201).json({
+					status: 1,
+					data: newAgent,
+					agent
+				})
+			}
 			return res.status(201).json({
 				status: 1,
-				...newAgent,
-				agent
+				message: 'hello ',
+				data: newAgent,
 			})
 		}
 	}

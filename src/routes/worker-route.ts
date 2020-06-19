@@ -15,7 +15,8 @@ Router.post('/job-sample', workerMiddleware, validate(validator.newJobSample), (
 Router.delete('/job-sample', workerMiddleware, validate(validator.deleteWithId), (req, res, next) => workerCtrl.deleteJobSample(req, res, next))
 
 /* ? Update worker business profile */
-Router.put('/', workerMiddleware, validate(validator.updateWorker), fileCtrl.uploadFile('logo'), fileCtrl.resizeLogo, (req, res) => workerCtrl.update(req, res))
+// Router.put('/', workerMiddleware, validate(validator.updateWorker), fileCtrl.uploadFile('logo'), fileCtrl.resizeLogo, (req, res) => workerCtrl.update(req, res))
+Router.put('/', workerMiddleware, validate(validator.updateWorker), fileCtrl.uploadFile('logo'), (req, res) => workerCtrl.update(req, res))
 
 /** ? Uploads job sample file.. It actually updates the job file table after file is stored */
 Router.post('/job-sample-file/:job_sample_id/:id', workerMiddleware, validate(validator.jobSampleFile), fileCtrl.uploadFile('file'), (req, res, next) => workerCtrl.updateFileLink(req, res, next))

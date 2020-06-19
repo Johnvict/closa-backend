@@ -1,5 +1,5 @@
 const multer = require('multer');
-const sharp = require('sharp');
+// const sharp = require('sharp');
 import { AppError } from './../app/exported.classes'
 
 
@@ -7,22 +7,31 @@ export class FileController {
 	logoDir = 'public/img/logo'
 	avatarDir = 'public/img/avatar'
 	fileDir = 'public/file/job-sample'
-	locationImageDir = 'public/location'
 
 	// ? This doesn't  allow image resize
-	// avatarStorage = multer.diskStorage({
-	// 	destination: (req, file, cb) => {
-	// 		cb(null, this.avatarDir)
-	// 	},
-	// 	filename: (req, file, cb) => {
-	// 		const ext = file.mimetype.split('/')[1]
-	// 		req.body.avatar = `user-${req.agent.phone}.${ext}`
-	// 		cb(null, req.body.avatar)
-	// 	}
-	// });
+	avatarStorage = multer.diskStorage({
+		destination: (req, file, cb) => {
+			cb(null, this.avatarDir)
+		},
+		filename: (req, file, cb) => {
+			const ext = file.mimetype.split('/')[1]
+			req.body.avatar = `user-${req.agent.phone}.${ext}`
+			cb(null, req.body.avatar)
+		}
+	});
+	logoStorage = multer.diskStorage({
+		destination: (req, file, cb) => {
+			cb(null, this.logoDir)
+		},
+		filename: (req, file, cb) => {
+			const ext = file.mimetype.split('/')[1]
+			req.body.logo = `business-${req.agent.phone}.${ext}`
+			cb(null, req.body.avatar)
+		}
+	});
 	
 	// ? This allows us to resize image
-	multterStorage = multer.memoryStorage();
+	// multterStorage = multer.memoryStorage();
 
 	fileStorage = multer.diskStorage({
 		destination: (req, file, cb) => {
@@ -55,21 +64,15 @@ export class FileController {
 		switch (fileType) {
 			case 'avatar':
 				return multer({
-					storage: this.multterStorage,
+					storage: this.avatarStorage,
 					fileFilter: this.imageFilter
 				}).single('avatar');
 				break;
 			case 'logo':
 				return multer({
-					storage: this.multterStorage,
+					storage: this.logoStorage,
 					fileFilter: this.imageFilter
 				}).single('logo')
-				break;
-			case 'location':
-				return multer({
-					storage: this.multterStorage,
-					fileFilter: this.imageFilter
-				}).single('image')
 				break;
 			case 'file':
 				return multer({
@@ -83,42 +86,29 @@ export class FileController {
 		}
 	}
 
-	resizeAvatar(req, res, next) {
-		if (!req.file) return next()
-		// const ext = req.file.mimetype.split('/')[1]
-		req.body.avatar = `img/avatar/user-${req.agent.phone}.jpg`
-		req.file.filename = `public/img/avatar/user-${req.agent.phone}.jpg`
-		sharp(req.file.buffer)
-			.resize(500, 500)
-			.toFormat('jpg')
-			.jpeg({ quality: 90 })
-			.toFile(req.file.filename)
-		next()
-	}
-	resizeLogo(req, res, next) {
-		if (!req.file) return next()
-		// const ext = req.file.mimetype.split('/')[1]
-		req.body.logo = `img/logo/business-${req.agent.phone}.jpg`
-		req.file.filename = `public/img/logo/business-${req.agent.phone}.jpg`
-		sharp(req.file.buffer)
-			.resize(500, 500)
-			.toFormat('jpg')
-			.jpeg({ quality: 90 })
-			.toFile(req.file.filename)
-		next()
-	}
-	resizeLocation(req, res, next) {
-		if (!req.file) return next()
-		const ext = req.file.mimetype.split('/')[1]
-		req.body.image = `location/location-${req.agent.phone}.${ext}`
-		req.file.filename = `public/location/location-${req.agent.phone}.${ext}`
-		sharp(req.file.buffer)
-			.resize(500, 500)
-			.toFormat(ext)
-			.jpeg({ quality: 90 })
-			.toFile(req.file.filename)
-		next()
-	}
-
+	// resizeAvatar(req, res, next) {
+	// 	if (!req.file) return next()
+	// 	// const ext = req.file.mimetype.split('/')[1]
+	// 	req.body.avatar = `img/avatar/user-${req.agent.phone}.jpg`
+	// 	req.file.filename = `public/img/avatar/user-${req.agent.phone}.jpg`
+	// 	sharp(req.file.buffer)
+	// 		.resize(500, 500)
+	// 		.toFormat('jpg')
+	// 		.jpeg({ quality: 90 })
+	// 		.toFile(req.file.filename)
+	// 	next()
+	// }
+	// resizeLogo(req, res, next) {
+	// 	if (!req.file) return next()
+	// 	// const ext = req.file.mimetype.split('/')[1]
+	// 	req.body.logo = `img/logo/business-${req.agent.phone}.jpg`
+	// 	req.file.filename = `public/img/logo/business-${req.agent.phone}.jpg`
+	// 	sharp(req.file.buffer)
+	// 		.resize(500, 500)
+	// 		.toFormat('jpg')
+	// 		.jpeg({ quality: 90 })
+	// 		.toFile(req.file.filename)
+	// 	next()
+	// }
 
 }

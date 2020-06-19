@@ -4,6 +4,12 @@ export interface Regular {
 	updatedAt?: Date | string | number;
 }
 
+export interface DateFormatted {
+	day: number;
+	month: number;
+	year: number;
+}
+
 export interface NewPhone {
 	phone: string;
 }

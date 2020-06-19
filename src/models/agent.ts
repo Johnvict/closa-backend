@@ -1,6 +1,6 @@
 import { NewAgent, NewPhone, Agent, UpdateAgent, NewToken } from './../misc/structs';
 import { GenericObject, UserStruct } from "../misc/structs"
-import { auth, DbModel, AppError, tokenModel } from './../app/exported.classes'
+import { auth, DbModel, AppError, tokenModel, catchAsync } from './../app/exported.classes'
 
 // const Op = require('sequelize').Op;
 import { Op, Sequelize } from 'sequelize';  
@@ -47,18 +47,36 @@ export class AgentModel {
 	}
 	constructor() { }
 
-	async createAgent(next, newAgent: NewPhone): Promise<NewAgent> {
-		return DbModel.Agent.findOrCreate({
-			where: { [Op.or]: [{ phone: newAgent.phone }] },
-			defaults: newAgent
-		}).then(async (queryRes) => {
-			const token: NewToken = await this.generateToken(queryRes[0].id)
-			tokenModel.create(next, token)
-			console.log('QUERY-RESPONSE-0', queryRes[0]);
-			console.log('QUERY-RESPONSE-1', queryRes[1]);
-			return await { data: queryRes[0] }
-			// return await { token: token, data: ...this.getOne(next, queryRes[0].id) }
-		}).catch(e => console.log(e)); 
+	async createAgent(newAgent: NewPhone, res, next) {
+		// return next(new AppError('no account found with this credential', 500, -1))
+		// return await catchAsync( async () => {
+		// 	// throw new Error('This is a purposeful error')
+		// 	const data = await DbModel.Agent.findOrCreate({
+		// 		where: { [Op.or]: [{ phone: newAgent.phone }] },
+		// 		defaults: newAgent
+		// 	})
+		// 	const token: NewToken = await this.generateToken(data[0].id)
+		// 	tokenModel.create(next, token)
+		// 	return {data0: data[0], data1: data[1]}
+		// })();
+		try {
+			const data = await DbModel.Agent.findOrCreate({
+				where: { [Op.or]: [{ phone: newAgent.phone }] },
+				defaults: newAgent
+			})
+		
+			if (data) {
+				const token: NewToken = await this.generateToken(data[0].id)
+				tokenModel.create(next, token)
+				console.log('QUERY-RESPONSE-0', data[0]);
+				console.log('QUERY-RESPONSE-1', data[1]);
+				return data[0]
+				// return await { token: token, data: ...this.getOne(next, queryRes[0].id) }
+			}
+		} catch (error) {
+			// ! LOG ERROR AND STACK TRACE
+			console.log(error);
+		}
 	}
 
 	async generateToken(agent_id: number): Promise<NewToken> {
