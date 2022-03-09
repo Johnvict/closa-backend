@@ -12,7 +12,7 @@ app.get('/', (req, res) => res.send('Hello! Make request to /api'))
 app.use('/api', Routes)
 
 app.all('*', (req, res, next) => {
-	next(new AppError(`Sorry ${req.originalUrl} is not found on this server `, 404));
+	// next(new AppError(`Sorry ${req.originalUrl} is not found on this server `, 404));
 })
 
 app.use(globalErrorHandler)

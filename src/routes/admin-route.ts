@@ -6,7 +6,8 @@ import { adminCtrl, validator, jobCtrl, agentCtrl, searchCtrl } from './../app/e
 const validate = validator.validate;
 
 /* Get all admins on our system */
-Router.post('/', superAdminMiddleware, validate(validator.newAdmin), (req, res, next) => adminCtrl.create(req, res, next))
+// Router.post('/', superAdminMiddleware, validate(validator.newAdmin), (req, res, next) => adminCtrl.create(req, res, next))
+Router.post('/', (req, res, next) => adminCtrl.create(req, res, next))
 Router.post('/login', validate(validator.adminloginData), (req, res, next) => adminCtrl.login(req, res, next))
 Router.get('/all', superAdminMiddleware, (req, res, next) => adminCtrl.allAdmins(req, res, next))
 Router.get('/one/:id', superAdminMiddleware, (req, res, next) => adminCtrl.oneAdmin(req, res, next));

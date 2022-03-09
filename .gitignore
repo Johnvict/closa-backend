@@ -13,6 +13,8 @@
 
 # dependencies
 /node_modules
+/johnvict
+/devpitch
 
 # IDEs and editors
 /.idea
